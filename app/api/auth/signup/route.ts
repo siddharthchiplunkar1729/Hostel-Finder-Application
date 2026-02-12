@@ -4,8 +4,9 @@ import bcrypt from 'bcryptjs';
 import { generateToken, generateRefreshToken } from '@/lib/jwt';
 
 export async function POST(request: NextRequest) {
-    const client = await pool.connect();
+    let client;
     try {
+        client = await pool.connect();
         const body = await request.json();
         const { email, password, name, phone, role = 'Student', studentData } = body;
 
@@ -147,7 +148,7 @@ export async function POST(request: NextRequest) {
         }, { status: 201 });
 
     } catch (error: any) {
-        await client.query('ROLLBACK');
+        if (client) await client.query('ROLLBACK');
         console.error('Signup error:', error);
 
         return NextResponse.json(
@@ -155,6 +156,6 @@ export async function POST(request: NextRequest) {
             { status: 500 }
         );
     } finally {
-        client.release();
+        if (client) client.release();
     }
 }

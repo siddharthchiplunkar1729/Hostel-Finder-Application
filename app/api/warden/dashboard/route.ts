@@ -2,32 +2,53 @@ import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
 import { withWarden } from '@/lib/middleware';
+import { AuthenticatedRequest } from '@/types';
 
-export const GET = withWarden(async (request: NextRequest) => {
+export const GET = withWarden(async (request: AuthenticatedRequest) => {
     try {
         const { searchParams } = new URL(request.url);
         const blockId = searchParams.get('blockId');
 
+        const wardenId = request.user?.id;
+
+        // Get the blocks this warden is responsible for
+        const wardenBlocksRes = await pool.query(
+            'SELECT id FROM hostel_blocks WHERE warden_user_id = $1',
+            [wardenId]
+        );
+        const wardenBlockIds = wardenBlocksRes.rows.map(b => b.id);
+
+        if (wardenBlockIds.length === 0 && request.user?.role !== 'Admin') {
+            return NextResponse.json({
+                success: true,
+                stats: { totalBlocks: 0, totalStudents: 0, pendingApplications: 0, acceptedApplications: 0, complaints: { pending: 0, assigned: 0, inProgress: 0, resolvedToday: 0 } },
+                occupancy: [],
+                applications: []
+            });
+        }
+
+        // Use selected blockId or all warden blocks
+        const targetBlockIds = blockId ? [blockId] : wardenBlockIds;
+
         // Get hostel block stats
         const blockStatsRes = await pool.query(
-            `SELECT COUNT(*) as total_blocks FROM hostel_blocks`
+            `SELECT COUNT(*) as total_blocks FROM hostel_blocks WHERE id = ANY($1)`,
+            [wardenBlockIds]
         );
         const totalBlocks = parseInt(blockStatsRes.rows[0]?.total_blocks || '0');
 
         // Get student stats
-        const studentStatsQuery = blockId
-            ? `SELECT COUNT(*) as count FROM students WHERE hostel_block_id = $1`
-            : `SELECT COUNT(*) as count FROM students`;
-        const studentStatsParams = blockId ? [blockId] : [];
-        const studentStatsRes = await pool.query(studentStatsQuery, studentStatsParams);
+        const studentStatsRes = await pool.query(
+            `SELECT COUNT(*) as count FROM students WHERE hostel_block_id = ANY($1)`,
+            [targetBlockIds]
+        );
         const studentsCount = parseInt(studentStatsRes.rows[0]?.count || '0');
 
         // Get application stats
-        const appStatsQuery = blockId
-            ? `SELECT status, COUNT(*) as count FROM hostel_applications WHERE hostel_block_id = $1 GROUP BY status`
-            : `SELECT status, COUNT(*) as count FROM hostel_applications GROUP BY status`;
-        const appStatsParams = blockId ? [blockId] : [];
-        const appStatsRes = await pool.query(appStatsQuery, appStatsParams);
+        const appStatsRes = await pool.query(
+            `SELECT status, COUNT(*) as count FROM hostel_applications WHERE hostel_block_id = ANY($1) GROUP BY status`,
+            [targetBlockIds]
+        );
 
         let pendingApplications = 0;
         let acceptedApplications = 0;
@@ -37,11 +58,12 @@ export const GET = withWarden(async (request: NextRequest) => {
         });
 
         // Get occupancy stats for hostel blocks
-        const occupancyQuery = blockId
-            ? `SELECT id, block_name, type, total_rooms, occupied_rooms, available_rooms FROM hostel_blocks WHERE id = $1`
-            : `SELECT id, block_name, type, total_rooms, occupied_rooms, available_rooms FROM hostel_blocks`;
-        const occupancyParams = blockId ? [blockId] : [];
-        const occupancyRes = await pool.query(occupancyQuery, occupancyParams);
+        const occupancyRes = await pool.query(
+            `SELECT id, block_name, type, total_rooms, occupied_rooms, available_rooms 
+             FROM hostel_blocks 
+             WHERE id = ANY($1)`,
+            [wardenBlockIds]
+        );
 
         const occupancyStats = occupancyRes.rows.map(block => ({
             blockId: block.id,
@@ -54,28 +76,19 @@ export const GET = withWarden(async (request: NextRequest) => {
         }));
 
         // Get recent applications with student info
-        const applicationsQuery = blockId
-            ? `SELECT 
+        const applicationsRes = await pool.query(
+            `SELECT 
                 ha.id, ha.status, ha.application_data, ha.created_at, ha.hostel_block_id,
                 s.id as student_id, s.roll_number, s.course, s.year, s.department,
                 u.name, u.email, u.phone
-               FROM hostel_applications ha
-               JOIN students s ON ha.student_id = s.id
-               JOIN users u ON s.user_id = u.id
-               WHERE ha.hostel_block_id = $1
-               ORDER BY ha.created_at DESC
-               LIMIT 20`
-            : `SELECT 
-                ha.id, ha.status, ha.application_data, ha.created_at, ha.hostel_block_id,
-                s.id as student_id, s.roll_number, s.course, s.year, s.department,
-                u.name, u.email, u.phone
-               FROM hostel_applications ha
-               JOIN students s ON ha.student_id = s.id
-               JOIN users u ON s.user_id = u.id
-               ORDER BY ha.created_at DESC
-               LIMIT 20`;
-        const applicationsParams = blockId ? [blockId] : [];
-        const applicationsRes = await pool.query(applicationsQuery, applicationsParams);
+             FROM hostel_applications ha
+             JOIN students s ON ha.student_id = s.id
+             JOIN users u ON s.user_id = u.id
+             WHERE ha.hostel_block_id = ANY($1)
+             ORDER BY ha.created_at DESC
+             LIMIT 20`,
+            [targetBlockIds]
+        );
 
         const applications = applicationsRes.rows.map(row => ({
             _id: row.id,

@@ -18,33 +18,45 @@ export default function EnrollmentGate({ children }: { children: React.ReactNode
 
     useEffect(() => {
         const fetchUser = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setLoading(false);
+                router.push('/auth/login');
+                return;
+            }
+
             try {
                 // First try to fetch latest from API
-                const token = localStorage.getItem('token');
                 const apiRes = await fetch('/api/auth/me', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
+
                 if (apiRes.ok) {
                     const data = await apiRes.json();
                     const latestUser = data.user;
-                    localStorage.setItem('user', JSON.stringify(latestUser));
 
-                    setUser(latestUser);
-                    return;
-                }
+                    // Populate enrichment fields if missing
+                    const userData = {
+                        ...latestUser,
+                        enrolledHostelId: data.student?.hostel_block_id || null,
+                        studentId: data.student?.id || null
+                    };
 
-                // Fallback to localStorage
-                const storedUser = localStorage.getItem('user');
-                if (storedUser) {
-                    const parsedUser = JSON.parse(storedUser);
-                    setUser(parsedUser);
+                    setUser(userData);
+                    localStorage.setItem('user', JSON.stringify(userData));
                 } else {
                     router.push('/auth/login');
                 }
-            } catch (e) {
-                console.error('Failed to fetch user session', e);
+            } catch (error) {
+                console.error('Error fetching user for gate:', error);
+
+                // Fallback to localStorage if API fails
+                const storedUser = localStorage.getItem('user');
+                if (storedUser) {
+                    setUser(JSON.parse(storedUser));
+                } else {
+                    router.push('/auth/login');
+                }
             } finally {
                 setLoading(false);
             }
@@ -62,6 +74,10 @@ export default function EnrollmentGate({ children }: { children: React.ReactNode
     }
 
     if (user?.role === 'Student' && !user.canAccessDashboard) {
+        if (!user.enrolledHostelId) {
+            router.push('/search');
+            return null;
+        }
         return (
             <div className="min-h-screen bg-light flex items-center justify-center px-6 py-12">
                 <div className="max-w-2xl w-full bg-white rounded-[3rem] p-12 text-center shadow-2xl border border-white">

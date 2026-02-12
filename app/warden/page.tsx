@@ -11,32 +11,49 @@ import Link from 'next/link';
 
 export default function WardenPortal() {
     const [applications, setApplications] = useState<any[]>([]);
+    const [blocks, setBlocks] = useState<any[]>([]);
+    const [selectedBlockId, setSelectedBlockId] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('Pending');
     const [stats, setStats] = useState({
         pending: 0,
         enrolled: 0,
-        available: 45
+        available: 0
     });
 
     useEffect(() => {
-        fetchApplications();
-    }, []);
+        fetchDashboard();
+    }, [selectedBlockId]);
 
-    const fetchApplications = async () => {
+    const fetchDashboard = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/warden/dashboard');
+            const url = selectedBlockId
+                ? `/api/warden/dashboard?blockId=${selectedBlockId}`
+                : '/api/warden/dashboard';
+
+            const res = await fetch(url);
             if (res.ok) {
                 const data = await res.json();
                 setApplications(data.applications || []);
+                setBlocks(data.occupancy || []);
+
+                // If no block selected, default to the first one available to the warden
+                if (!selectedBlockId && data.occupancy?.length > 0) {
+                    setSelectedBlockId(data.occupancy[0].blockId);
+                }
 
                 const p = data.stats?.pendingApplications || 0;
                 const e = data.stats?.acceptedApplications || 0;
-                setStats(prev => ({ ...prev, pending: p, enrolled: e }));
+
+                // Get available rooms for selected block
+                const currentBlock = data.occupancy?.find((b: any) => b.blockId === (selectedBlockId || data.occupancy[0]?.blockId));
+                const available = currentBlock?.availableRooms || 0;
+
+                setStats(prev => ({ ...prev, pending: p, enrolled: e, available }));
             }
         } catch (error) {
-            console.error('Error fetching applications:', error);
+            console.error('Error fetching dashboard data:', error);
         } finally {
             setLoading(false);
         }
@@ -61,7 +78,7 @@ export default function WardenPortal() {
 
             if (res.ok) {
                 alert(`✅ Application ${status === 'Accepted' ? 'approved' : 'rejected'} successfully!`);
-                await fetchApplications(); // Refresh the list
+                await fetchDashboard(); // Refresh the list
             } else {
                 alert(`❌ Error: ${data.error || 'Failed to process application'}`);
             }
@@ -84,7 +101,19 @@ export default function WardenPortal() {
                         </div>
                         <div>
                             <h1 className="text-2xl font-black text-dark tracking-tight">Warden Dashboard</h1>
-                            <p className="text-xs text-dark-light font-black uppercase tracking-widest">A Block • North Campus</p>
+                            <div className="flex items-center gap-2">
+                                <select
+                                    value={selectedBlockId}
+                                    onChange={(e) => setSelectedBlockId(e.target.value)}
+                                    className="bg-transparent text-xs text-primary font-black uppercase tracking-widest border-none p-0 focus:ring-0 cursor-pointer hover:underline"
+                                >
+                                    {blocks.map(b => (
+                                        <option key={b.blockId} value={b.blockId} className="text-dark">
+                                            {b.blockName} • North Campus
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">

@@ -48,7 +48,7 @@ function SignupForm() {
             } else if (data.user.role === 'Warden') {
                 router.push('/warden');
             } else {
-                router.push('/dashboard');
+                router.push('/search');
             }
         } catch (err: any) {
             setError(err.message);
