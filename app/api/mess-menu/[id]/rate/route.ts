@@ -1,44 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import MessMenu from '@/models/MessMenu';
+import pool from '@/lib/db';
 
 export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        await dbConnect();
-
         const { id } = await params;
         const body = await request.json();
         const { mealType, rating } = body;
 
-        const menu = await MessMenu.findById(id);
-        if (!menu) {
-            return NextResponse.json(
-                { error: 'Menu not found' },
-                { status: 404 }
-            );
+        const colSuffix = rating === 'up' ? 'up' : 'down';
+        const column = `${mealType.toLowerCase()}_${colSuffix}`;
+
+        const result = await pool.query(
+            `UPDATE mess_menu 
+             SET ${column} = ${column} + 1 
+             WHERE id = $1 
+             RETURNING *`,
+            [id]
+        );
+
+        if (result.rowCount === 0) {
+            return NextResponse.json({ error: 'Menu not found' }, { status: 404 });
         }
 
-        const meal = menu.meals.find((m: any) => m.mealType === mealType);
-        if (!meal) {
-            return NextResponse.json(
-                { error: 'Meal not found' },
-                { status: 404 }
-            );
-        }
-
-        if (rating === 'up') {
-            meal.thumbsUp += 1;
-        } else {
-            meal.thumbsDown += 1;
-        }
-
-        await menu.save();
-
-        return NextResponse.json(menu);
-    } catch (error) {
+        return NextResponse.json({
+            success: true,
+            menu: { ...result.rows[0], _id: result.rows[0].id }
+        });
+    } catch (error: any) {
         console.error('Error rating meal:', error);
         return NextResponse.json(
             { error: 'Failed to rate meal' },

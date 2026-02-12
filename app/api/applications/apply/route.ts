@@ -1,17 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
+import { withStudent } from '@/lib/middleware';
+import { AuthenticatedRequest } from '@/types';
+
 // POST /api/applications/apply - Submit a new hostel application
-export async function POST(request: NextRequest) {
+export const POST = withStudent(async (request: AuthenticatedRequest) => {
     const client = await pool.connect();
     try {
         const body = await request.json();
-        const { studentId, hostelBlockId, applicationData } = body;
+        const { hostelBlockId, applicationData } = body;
+
+        // Securely fetch the student ID from the database using the authenticated user ID
+        const studentLookupRes = await client.query(
+            'SELECT id FROM students WHERE user_id = $1',
+            [request.user.id]
+        );
+        const studentId = studentLookupRes.rows[0]?.id;
 
         // Validation
         if (!studentId || !hostelBlockId) {
             return NextResponse.json(
-                { error: 'Student ID and Hostel Block ID are required' },
+                { error: 'Student profile not found or missing Hostel Block ID' },
                 { status: 400 }
             );
         }
@@ -79,4 +89,4 @@ export async function POST(request: NextRequest) {
     } finally {
         client.release();
     }
-}
+});

@@ -25,6 +25,7 @@ export async function GET(
         }
 
         const row = blockRes.rows[0];
+        const isApproved = row.approval_status === 'Approved' || row.approval_status === null;
 
         // Fetch Reviews
         const reviewsRes = await pool.query(
@@ -38,7 +39,7 @@ export async function GET(
         );
 
         // Map Reviews
-        const reviews = reviewsRes.rows.map(r => ({
+        const reviews = isApproved ? reviewsRes.rows.map(r => ({
             _id: r.id,
             studentId: r.student_name || 'Anonymous', // Map name to studentId for checking charAt(0)
             rating: r.rating,
@@ -46,7 +47,7 @@ export async function GET(
             helpful: r.helpful,
             createdAt: r.created_at,
             photos: [] // Placeholder
-        }));
+        })) : [];
 
         // Mock Rooms Data based on counts
         const rooms = [];
@@ -77,17 +78,18 @@ export async function GET(
             availableRooms: row.available_rooms,
             occupiedRooms: row.occupied_rooms,
             location: row.location,
-            rating: parseFloat(row.rating),
+            rating: isApproved ? parseFloat(row.rating) : 0,
             virtualTourUrl: row.virtual_tour_url,
             images: row.images || [],
             facilities: row.facilities || [],
+            approvalStatus: row.approval_status || 'Approved',
             wardenInfo: {
                 name: row.warden_name || 'N/A',
                 phone: row.warden_phone || 'N/A',
                 email: row.warden_email || 'N/A'
             },
             reviews: reviews,
-            averageRating: parseFloat(row.rating), // Duplicate for compatibility
+            averageRating: isApproved ? parseFloat(row.rating) : 0, // Duplicate for compatibility
             totalReviews: reviews.length,
             rooms: rooms
         };

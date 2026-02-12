@@ -35,16 +35,18 @@ export default function Navbar() {
     };
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || isMenuOpen ? 'bg-white/95 backdrop-blur-md shadow-card py-4' : 'bg-white/90 backdrop-blur-sm shadow-sm py-6'
+        <nav className={`fixed top-4 left-6 right-6 z-50 transition-all duration-500 rounded-[2rem] border border-white/20 ${scrolled || isMenuOpen
+            ? 'bg-white/80 backdrop-blur-xl shadow-elevated py-4'
+            : 'bg-white/40 backdrop-blur-md shadow-sm py-5'
             }`}>
             <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 group">
-                    <div className="bg-gradient-to-br from-primary to-secondary text-white p-2 rounded-xl group-hover:scale-110 transition-transform shadow-md">
+                <Link href="/" className="flex items-center gap-3 group">
+                    <div className="bg-primary text-white p-2.5 rounded-2xl group-hover:rotate-12 transition-all shadow-premium">
                         <GraduationCap size={24} strokeWidth={2.5} />
                     </div>
-                    <span className="text-2xl font-extrabold tracking-tight text-dark">
-                        Hostel<span className="text-primary">Hub</span>.
+                    <span className="text-2xl font-black tracking-tighter text-dark">
+                        HOSTEL<span className="text-primary underline decoration-4 decoration-accent underline-offset-4">HUB</span>
                     </span>
                 </Link>
 
@@ -90,7 +92,7 @@ export default function Navbar() {
                     ) : (
                         <Link
                             href="/auth/login"
-                            className="bg-dark hover:bg-primary text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-dark/10 transition-all hover:-translate-y-0.5"
+                            className="bg-dark text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-elevated transition-all hover:bg-primary hover:-translate-y-1 hover:shadow-premium"
                         >
                             Member Login
                         </Link>

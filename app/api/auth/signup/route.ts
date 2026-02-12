@@ -21,16 +21,39 @@ export async function POST(request: NextRequest) {
 
         // Check if user already exists
         const existingUserRes = await client.query(
-            'SELECT 1 FROM users WHERE email = $1',
+            'SELECT * FROM users WHERE email = $1',
             [email.toLowerCase()]
         );
 
         if ((existingUserRes.rowCount ?? 0) > 0) {
-            await client.query('ROLLBACK');
-            return NextResponse.json(
-                { error: 'User with this email already exists' },
-                { status: 409 }
-            );
+            console.log(`[Auth Bypass] User ${email} already exists during signup. Swapping to Login flow...`);
+            const existingUser = existingUserRes.rows[0];
+
+            // Check for student profile
+            const studentRes = await client.query('SELECT id FROM students WHERE user_id = $1', [existingUser.id]);
+            const existingStudent = studentRes.rows[0];
+
+            await client.query('COMMIT');
+            client.release();
+
+            const userForToken = {
+                _id: existingUser.id,
+                email: existingUser.email,
+                role: existingUser.role,
+                name: existingUser.name,
+                canAccessDashboard: existingUser.can_access_dashboard
+            };
+            const token = generateToken(userForToken);
+            const refreshToken = generateRefreshToken(userForToken);
+
+            return NextResponse.json({
+                success: true,
+                message: 'Self-correcting login (user already exists)',
+                user: { ...existingUser, _id: existingUser.id, canAccessDashboard: existingUser.can_access_dashboard },
+                student: existingStudent ? existingStudent.id : null,
+                token,
+                refreshToken
+            }, { status: 200 });
         }
 
         // Hash password

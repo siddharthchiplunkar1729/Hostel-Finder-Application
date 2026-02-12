@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, AlertTriangle, Utensils, QrCode, CreditCard, Phone } from 'lucide-react';
+import { FileText, AlertTriangle, Utensils, QrCode, CreditCard, Phone, Star } from 'lucide-react';
 
 interface QuickActionsCardProps {
     onSubmitComplaint: () => void;
@@ -9,44 +9,58 @@ interface QuickActionsCardProps {
 const ACTIONS = [
     {
         icon: AlertTriangle,
-        label: 'Submit Complaint',
-        color: 'from-danger to-red-600',
+        label: 'File Incident',
+        sub: 'Submit support ticket',
+        color: 'from-danger/20 to-danger/5',
+        text: 'text-danger',
         action: 'complaint'
     },
     {
         icon: Utensils,
-        label: "Today's Menu",
-        color: 'from-secondary to-green-600',
+        label: 'Culinary Map',
+        sub: 'View daily schedule',
+        color: 'from-secondary/20 to-secondary/5',
+        text: 'text-secondary',
         action: 'menu'
     },
     {
         icon: QrCode,
-        label: 'Mark Attendance',
-        color: 'from-primary to-blue-600',
+        label: 'Identity Sync',
+        sub: 'QR attendance system',
+        color: 'from-primary/20 to-primary/5',
+        text: 'text-primary',
         action: 'attendance'
     },
     {
         icon: CreditCard,
-        label: 'Pay Fee',
-        color: 'from-accent to-orange-600',
+        label: 'Financial Portal',
+        sub: 'Dues and payments',
+        color: 'from-accent/20 to-accent/5',
+        text: 'text-accent',
         action: 'fee'
     },
     {
         icon: FileText,
-        label: 'View Notices',
-        color: 'from-purple-500 to-pink-600',
+        label: 'Bulletins',
+        sub: 'Official archives',
+        color: 'from-purple-500/10 to-purple-500/5',
+        text: 'text-purple-500',
         action: 'notices'
     },
     {
         icon: Phone,
-        label: 'Emergency SOS',
-        color: 'from-red-600 to-red-800',
+        label: 'Emergency',
+        sub: '24/7 Support Line',
+        color: 'from-red-600/20 to-red-600/5',
+        text: 'text-red-600',
         action: 'sos'
     },
     {
-        icon: FileText,
-        label: 'Submit Review',
-        color: 'from-yellow-400 to-orange-500',
+        icon: Star,
+        label: 'Feedback',
+        sub: 'Rate experience',
+        color: 'from-yellow-400/10 to-yellow-400/5',
+        text: 'text-yellow-600',
         action: 'review'
     }
 ];
@@ -58,20 +72,19 @@ export default function QuickActionsCard({ onSubmitComplaint }: QuickActionsCard
                 onSubmitComplaint();
                 break;
             case 'menu':
-                window.location.href = '/mess-menu';
+                window.location.href = '/dashboard/mess-menu';
                 break;
             case 'attendance':
-                // TODO: Open QR scanner
-                alert('QR Scanner feature coming soon!');
+                alert('Advanced Identity Sync coming soon.');
                 break;
             case 'fee':
                 window.location.href = '/fee-payment';
                 break;
             case 'notices':
-                window.location.href = '/notices';
+                window.location.href = '/dashboard/notices';
                 break;
             case 'sos':
-                alert('Emergency services contacted!');
+                alert('Emergency protocol initiated. Wardens notified.');
                 break;
             case 'review':
                 window.location.href = '/dashboard/reviews';
@@ -80,20 +93,24 @@ export default function QuickActionsCard({ onSubmitComplaint }: QuickActionsCard
     };
 
     return (
-        <div className="bg-white rounded-2xl p-6 shadow-card">
-            <h2 className="text-lg font-bold text-dark mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="bg-card/40 backdrop-blur-xl rounded-[3.5rem] p-10 shadow-card border border-white/5">
+            <h2 className="text-3xl font-black text-dark mb-10 tracking-tight">Executive Actions</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6">
                 {ACTIONS.map((item, idx) => {
                     const Icon = item.icon;
                     return (
                         <button
                             key={idx}
                             onClick={() => handleAction(item.action)}
-                            className={`group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br ${item.color} text-white hover:shadow-floating transition-all hover:-translate-y-1 active:scale-95`}
+                            className="group flex flex-col items-center text-center gap-4 transition-all"
                         >
-                            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors" />
-                            <Icon size={24} className="mb-2 relative z-10" />
-                            <p className="text-sm font-bold relative z-10">{item.label}</p>
+                            <div className={`w-20 h-20 rounded-[2.5rem] bg-gradient-to-br ${item.color} flex items-center justify-center ${item.text} border border-white/10 dark:border-white/5 shadow-sm group-hover:shadow-card group-hover:-translate-y-2 group-hover:scale-110 transition-all duration-300`}>
+                                <Icon size={32} />
+                            </div>
+                            <div>
+                                <p className="text-xs font-black text-foreground tracking-tight leading-none mb-1 group-hover:text-primary transition-colors">{item.label}</p>
+                                <p className="text-[9px] font-bold text-muted-foreground opacity-60 uppercase tracking-widest">{item.sub}</p>
+                            </div>
                         </button>
                     );
                 })}

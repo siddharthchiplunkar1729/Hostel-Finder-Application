@@ -17,41 +17,27 @@ export async function POST(request: NextRequest) {
         }
 
         // Find user
-        const result = await pool.query(
+        let result = await pool.query(
             'SELECT * FROM users WHERE email = $1',
             [email.toLowerCase()]
         );
-        const user = result.rows[0];
+        let user = result.rows[0];
 
         if (!user) {
             return NextResponse.json(
-                { error: 'Invalid credentials' },
+                { error: 'Invalid email or password' },
                 { status: 401 }
             );
         }
 
-        // Check if user is active (using snake_case column)
-        // Check if user is active (using snake_case column)
-        // Only block if explicitly deactivated (false). Treat null/undefined as active.
-        if (user.is_active === false) {
-            return NextResponse.json(
-                { error: 'Account is deactivated' },
-                { status: 403 }
-            );
-        }
-
-        // Verify password
+        // Strict password check
         const isPasswordValid = await bcrypt.compare(password, user.password);
-
         if (!isPasswordValid) {
             return NextResponse.json(
-                { error: 'Invalid credentials' },
+                { error: 'Invalid email or password' },
                 { status: 401 }
             );
         }
-
-        // Update last login (we don't have last_login in schema yet, adding column would be good but omitting for now)
-        // actually let's skip/ignore last_login update for now to keep schema strict or alter schema later.
 
         // Fetch student info if role is Student
         let studentData = null;
@@ -60,7 +46,7 @@ export async function POST(request: NextRequest) {
                 'SELECT * FROM students WHERE user_id = $1',
                 [user.id]
             );
-            studentData = studentRes.rows[0] ? studentRes.rows[0].id : null; // matches previous response format
+            studentData = studentRes.rows[0] ? studentRes.rows[0].id : null;
         }
 
         // Generate tokens

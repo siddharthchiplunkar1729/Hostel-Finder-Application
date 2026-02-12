@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import HostelBlock from '@/models/HostelBlock';
+import pool from '@/lib/db';
 
 // POST /api/hostels/[id]/comments/[commentId]/reply - Reply to a comment
 export async function POST(
@@ -8,32 +7,25 @@ export async function POST(
     { params }: { params: Promise<{ id: string, commentId: string }> }
 ) {
     try {
-        await dbConnect();
         const { id, commentId } = await params;
         const body = await request.json();
-        const { userId, text } = body;
+        const { userId, text, userType } = body;
 
-        const hostel = await HostelBlock.findById(id);
-        if (!hostel) {
-            return NextResponse.json({ error: 'Hostel not found' }, { status: 404 });
-        }
+        const result = await pool.query(
+            `INSERT INTO hostel_comments (hostel_block_id, user_id, user_type, comment_text, parent_id)
+             VALUES ($1, $2, $3, $4, $5)
+             RETURNING *`,
+            [id, userId, userType || 'Student', text, commentId]
+        );
 
-        const comment = hostel.comments.id(commentId);
-        if (!comment) {
-            return NextResponse.json({ error: 'Comment not found' }, { status: 404 });
-        }
+        const newReply = result.rows[0];
 
-        const newReply = {
-            userId,
-            text,
-            createdAt: new Date()
-        };
-
-        comment.replies.push(newReply);
-        await hostel.save();
-
-        return NextResponse.json({ success: true, reply: newReply });
+        return NextResponse.json({
+            success: true,
+            reply: { ...newReply, _id: newReply.id }
+        });
     } catch (error: any) {
+        console.error('Error replying to comment:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

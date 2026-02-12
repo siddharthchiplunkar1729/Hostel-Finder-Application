@@ -44,97 +44,100 @@ export default function ComplaintCard({ complaint }: ComplaintCardProps) {
                 'border-l-priority-low';
 
     return (
-        <div className={`bg-white rounded-2xl p-6 shadow-card hover:shadow-floating transition-all border-l-4 ${priorityColor}`}>
-            {/* Header */}
-            <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className={`px-3 py-1 rounded-lg text-xs font-bold ${CATEGORY_COLORS[complaint.category]}`}>
+        <div className={`group bg-card/40 backdrop-blur-xl rounded-[2.5rem] p-10 shadow-card hover:shadow-elevated transition-all duration-300 border-l-8 ${priorityColor} border border-white/5 relative overflow-hidden`}>
+            {/* Header Area */}
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
+                <div className="flex-1 space-y-4">
+                    <div className="flex flex-wrap gap-3">
+                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${CATEGORY_COLORS[complaint.category] || 'bg-gray-100 text-gray-700'}`}>
                             {complaint.category}
                         </span>
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${complaint.priority === 'High' ? 'bg-danger-light text-danger' :
-                                complaint.priority === 'Medium' ? 'bg-accent-light text-accent' :
-                                    'bg-success-light text-success'
+                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${complaint.priority === 'High' ? 'bg-danger/10 text-danger' :
+                            complaint.priority === 'Medium' ? 'bg-accent/10 text-accent' : 'bg-success/10 text-success'
                             }`}>
-                            {complaint.priority}
+                            Priority: {complaint.priority}
                         </span>
                     </div>
-                    <h3 className="text-lg font-bold text-dark mb-1">{complaint.title}</h3>
-                    <p className="text-sm text-dark-light line-clamp-2">{complaint.description}</p>
+                    <div>
+                        <h3 className="text-2xl font-black text-foreground tracking-tight mb-2 group-hover:text-primary transition-colors">
+                            {complaint.title}
+                        </h3>
+                        <p className="text-muted-foreground font-medium leading-relaxed line-clamp-2">
+                            {complaint.description}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Reference ID</div>
+                    <div className="text-sm font-black text-foreground bg-muted px-4 py-2 rounded-xl border border-white/5">
+                        #{complaint._id.slice(-6).toUpperCase()}
+                    </div>
                 </div>
             </div>
 
-            {/* Location */}
-            <div className="flex items-center gap-2 text-sm text-dark-light mb-4">
-                <span className="font-medium">📍</span>
-                <span>
-                    {complaint.location.type === 'Room'
-                        ? `Room ${complaint.location.roomNumber}`
-                        : complaint.location.areaName}
-                </span>
-            </div>
-
-            {/* Status Timeline */}
-            <div className="mb-4">
-                <div className="flex items-center justify-between">
-                    {STATUS_STEPS.map((step, idx) => (
-                        <div key={step} className="flex items-center flex-1">
-                            <div className="flex flex-col items-center">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${idx <= currentStepIndex
-                                        ? 'bg-primary text-white'
-                                        : 'bg-light text-dark-light'
+            {/* Status Flow - Premium Horizontal Line */}
+            <div className="relative py-8 mb-8 border-y border-white/5">
+                <div className="flex justify-between items-center relative z-10">
+                    {STATUS_STEPS.map((step, idx) => {
+                        const isPast = idx < currentStepIndex;
+                        const isCurrent = idx === currentStepIndex;
+                        return (
+                            <div key={step} className="flex flex-col items-center gap-3">
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm ${isPast ? 'bg-success text-white' :
+                                    isCurrent ? 'bg-primary text-white scale-110 shadow-premium animate-pulse-soft' :
+                                        'bg-muted text-muted-foreground/40 border border-white/5'
                                     }`}>
-                                    {idx < currentStepIndex ? (
-                                        <CheckCircle2 size={16} />
-                                    ) : idx === currentStepIndex ? (
-                                        <Clock size={16} className="animate-pulse-soft" />
-                                    ) : (
-                                        <Circle size={12} />
-                                    )}
+                                    {isPast ? <CheckCircle2 size={24} /> : isCurrent ? <Clock size={24} /> : <Circle size={12} />}
                                 </div>
-                                <span className={`text-xs mt-1 font-medium ${idx <= currentStepIndex ? 'text-primary' : 'text-dark-light'
-                                    }`}>
+                                <span className={`text-[10px] font-black uppercase tracking-widest ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`}>
                                     {step}
                                 </span>
                             </div>
-                            {idx < STATUS_STEPS.length - 1 && (
-                                <div className={`flex-1 h-0.5 mx-2 ${idx < currentStepIndex ? 'bg-primary' : 'bg-gray-200'
-                                    }`} />
-                            )}
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
+                {/* Connector Line Background */}
+                <div className="absolute top-1/2 left-6 right-6 h-0.5 bg-muted -translate-y-[1.5rem] -z-0" />
+                <div
+                    className="absolute top-1/2 left-6 h-0.5 bg-success transition-all duration-1000 -translate-y-[1.5rem] -z-0"
+                    style={{ width: `${(currentStepIndex / (STATUS_STEPS.length - 1)) * 90}%` }}
+                />
             </div>
 
-            {/* Assignment Info */}
-            {complaint.assignedTo && (
-                <div className="bg-light rounded-xl p-3 flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white">
-                        <User2 size={18} />
-                    </div>
-                    <div className="flex-1">
-                        <p className="text-xs text-dark-light font-medium">Assigned to</p>
-                        <p className="text-sm font-bold text-dark">{complaint.assignedTo.name}</p>
-                        <p className="text-xs text-dark-light">{complaint.assignedTo.role}</p>
-                    </div>
+            {/* Assignment & Metadata */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                    {complaint.assignedTo ? (
+                        <div className="flex items-center gap-4 p-3 pr-6 bg-muted/50 rounded-[2rem] border border-white/5">
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white shadow-sm">
+                                <User2 size={22} />
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-tight">Field Agent</p>
+                                <p className="text-sm font-black text-foreground leading-tight">{complaint.assignedTo.name}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-3 text-dark-light opacity-50 italic text-sm">
+                            <User2 size={18} />
+                            <span>Queued for assignment...</span>
+                        </div>
+                    )}
+
                     {complaint.eta && (
-                        <div className="text-right">
-                            <p className="text-xs text-dark-light">ETA</p>
-                            <p className="text-sm font-bold text-primary">
-                                {new Date(complaint.eta).toLocaleTimeString('en-US', {
-                                    hour: 'numeric',
-                                    minute: '2-digit'
-                                })}
+                        <div className="px-6 py-2 bg-primary/5 rounded-2xl border border-primary/10">
+                            <p className="text-[9px] font-black text-primary uppercase tracking-widest">Est. Resolution</p>
+                            <p className="text-sm font-black text-primary">
+                                {new Date(complaint.eta).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                             </p>
                         </div>
                     )}
                 </div>
-            )}
 
-            {/* Footer */}
-            <div className="flex items-center justify-between text-xs text-dark-light pt-4 border-t border-gray-100">
-                <span>Submitted {new Date(complaint.createdAt).toLocaleDateString()}</span>
-                <span className="font-medium">ID: #{complaint._id.slice(-6).toUpperCase()}</span>
+                <div className="flex items-center gap-4 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
+                    <span>Logged: {new Date(complaint.createdAt).toLocaleDateString()}</span>
+                </div>
             </div>
         </div>
     );

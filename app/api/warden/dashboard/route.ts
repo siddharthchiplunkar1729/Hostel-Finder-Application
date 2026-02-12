@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-export async function GET(request: NextRequest) {
+import { withWarden } from '@/lib/middleware';
+
+export const GET = withWarden(async (request: NextRequest) => {
     try {
         const { searchParams } = new URL(request.url);
         const blockId = searchParams.get('blockId');
@@ -120,4 +122,4 @@ export async function GET(request: NextRequest) {
             { status: 500 }
         );
     }
-}
+});

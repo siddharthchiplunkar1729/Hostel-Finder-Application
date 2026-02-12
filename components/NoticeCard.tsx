@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Bell, Share2, Bookmark, CheckCircle } from 'lucide-react';
+import { AlertCircle, Bell, Share2, Bookmark, CheckCircle, Clock } from 'lucide-react';
 import { useState } from 'react';
 
 interface NoticeCardProps {
@@ -66,113 +66,118 @@ export default function NoticeCard({ notice }: NoticeCardProps) {
     };
 
     return (
-        <div className={`bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-floating transition-all border-l-4 ${config.border} ${!acknowledged ? 'ring-2 ring-primary/20' : ''}`}>
-            {/* Header */}
-            <div className={`${config.bg} text-white p-4 flex items-center gap-3`}>
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                    <Icon size={20} />
-                </div>
-                <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded text-xs font-bold">
-                            {notice.type}
-                        </span>
-                        {notice.priority === 'High' && !acknowledged && (
-                            <span className="px-2 py-0.5 bg-white/30 backdrop-blur-sm rounded text-xs font-bold animate-pulse-soft">
-                                🔥 URGENT
-                            </span>
-                        )}
+        <div className={`group bg-card rounded-[3.5rem] overflow-hidden shadow-card hover:shadow-elevated transition-all duration-300 border-l-8 ${config.border} relative`}>
+            {/* High-Concept Header */}
+            <div className={`${config.bg} p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 text-white`}>
+                <div className="flex items-center gap-6">
+                    <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-[1.5rem] flex items-center justify-center border border-white/20">
+                        <Icon size={32} />
                     </div>
-                    <div className="text-xs opacity-90">
-                        {notice.from.role} • {notice.from.name}
+                    <div>
+                        <div className="flex items-center gap-3 mb-1">
+                            <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10">
+                                Official {notice.type}
+                            </span>
+                            {notice.priority === 'High' && !acknowledged && (
+                                <span className="px-4 py-1.5 bg-danger text-white text-[10px] font-black uppercase tracking-widest rounded-full animate-pulse-soft shadow-premium">
+                                    Flash Bulletin
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-white/60 font-black uppercase tracking-[0.2em] text-[10px]">
+                            Broadcast from {notice.from.role} • {notice.from.name}
+                        </p>
                     </div>
                 </div>
                 {!acknowledged && (
-                    <div className="w-3 h-3 bg-yellow-300 rounded-full animate-pulse-soft shadow-lg" title="Unread" />
+                    <div className="flex items-center animate-bounce">
+                        <div className="w-4 h-4 bg-yellow-300 rounded-full shadow-[0_0_20px_rgba(253,224,71,0.5)]" />
+                    </div>
                 )}
             </div>
 
-            {/* Content */}
-            <div className="p-6">
-                <h3 className="text-xl font-bold text-dark mb-3">{notice.title}</h3>
-                <p className="text-dark-light leading-relaxed mb-4 whitespace-pre-wrap">
+            {/* Content Core */}
+            <div className="p-10">
+                <h3 className="text-3xl font-black text-dark tracking-tight mb-6 group-hover:text-primary transition-colors leading-tight">
+                    {notice.title}
+                </h3>
+                <p className="text-dark-light font-medium leading-relaxed mb-10 whitespace-pre-wrap text-lg">
                     {notice.content}
                 </p>
 
-                {/* Attachments */}
+                {/* Attachments Hub */}
                 {notice.attachments && notice.attachments.length > 0 && (
-                    <div className="space-y-2 mb-4">
-                        {notice.attachments.map((attachment, idx) => (
-                            <a
-                                key={idx}
-                                href={attachment.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-3 p-3 bg-light hover:bg-light-hover rounded-xl transition-colors group"
-                            >
-                                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                                    📎
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-sm font-semibold text-dark group-hover:text-primary transition-colors">
-                                        {attachment.name}
-                                    </p>
-                                </div>
-                            </a>
-                        ))}
+                    <div className="space-y-4 mb-10">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-dark-light mb-2">Authenticated Enclosures</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {notice.attachments.map((attachment, idx) => (
+                                <a
+                                    key={idx}
+                                    href={attachment.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-4 p-5 bg-light hover:bg-white hover:shadow-card border border-transparent hover:border-gray-50 rounded-[2rem] transition-all group/attachment"
+                                >
+                                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm group-hover/attachment:bg-primary group-hover/attachment:text-white transition-colors">
+                                        📄
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-black text-dark tracking-tight leading-none mb-1">
+                                            {attachment.name}
+                                        </p>
+                                        <p className="text-[10px] font-bold text-dark-light opacity-60 uppercase tracking-widest">Digital Asset • PDF</p>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
                     </div>
                 )}
 
-                {/* Actions */}
-                <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                {/* Engagement Area */}
+                <div className="flex flex-col sm:flex-row items-center gap-6 pt-8 border-t border-gray-50">
                     {!acknowledged ? (
                         <button
                             onClick={handleAcknowledge}
-                            className="flex-1 bg-primary hover:bg-primary-hover text-white py-2.5 rounded-xl font-bold transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+                            className="flex-1 w-full bg-primary hover:bg-primary-hover text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] transition-all shadow-premium hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3"
                         >
-                            <CheckCircle size={18} />
-                            Acknowledge
+                            <CheckCircle size={20} />
+                            Log Final Acknowledgment
                         </button>
                     ) : (
-                        <div className="flex-1 bg-success-light text-success py-2.5 rounded-xl font-bold flex items-center justify-center gap-2">
-                            <CheckCircle size={18} />
-                            Acknowledged
+                        <div className="flex-1 w-full bg-success/5 text-success py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-3 border border-success/10">
+                            <CheckCircle size={20} />
+                            Verified Transmission
                         </div>
                     )}
 
-                    <button
-                        onClick={() => setSaved(!saved)}
-                        className={`p-2.5 rounded-xl transition-all ${saved
-                                ? 'bg-accent text-white shadow-sm'
-                                : 'bg-light hover:bg-light-hover text-dark-light'
-                            }`}
-                        title="Save notice"
-                    >
-                        <Bookmark size={18} fill={saved ? 'currentColor' : 'none'} />
-                    </button>
+                    <div className="flex gap-4">
+                        <button
+                            onClick={() => setSaved(!saved)}
+                            className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${saved
+                                ? 'bg-accent text-white shadow-premium scale-110'
+                                : 'bg-light hover:bg-gray-200 text-dark-light'
+                                }`}
+                        >
+                            <Bookmark size={22} fill={saved ? 'currentColor' : 'none'} />
+                        </button>
 
-                    <button
-                        onClick={handleShare}
-                        className="p-2.5 bg-light hover:bg-light-hover rounded-xl transition-colors text-dark-light"
-                        title="Share notice"
-                    >
-                        <Share2 size={18} />
-                    </button>
+                        <button
+                            onClick={handleShare}
+                            className="w-14 h-14 bg-light hover:bg-gray-200 rounded-2xl flex items-center justify-center transition-all text-dark-light hover:scale-110"
+                        >
+                            <Share2 size={22} />
+                        </button>
+                    </div>
                 </div>
 
-                {/* Footer */}
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                    <span className="text-xs text-dark-light">
-                        {new Date(notice.createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                            hour: 'numeric',
-                            minute: '2-digit'
-                        })}
-                    </span>
-                    <span className="text-xs font-medium text-dark-light">
-                        ID: #{notice._id.slice(-6).toUpperCase()}
+                {/* Intelligence Metadata */}
+                <div className="flex items-center justify-between mt-10 pt-6 border-t border-gray-50">
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-dark-light opacity-40">
+                        <Clock size={12} />
+                        {new Date(notice.createdAt).toLocaleDateString()} at {new Date(notice.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-dark-light opacity-40 italic">
+                        Hash: {notice._id.toUpperCase()}
                     </span>
                 </div>
             </div>

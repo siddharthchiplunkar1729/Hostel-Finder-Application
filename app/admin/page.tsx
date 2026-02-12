@@ -66,8 +66,8 @@ export default function AdminPortal() {
     };
 
     const filteredHostels = hostels.filter(h =>
-        h.blockName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        h.wardenInfo.name.toLowerCase().includes(searchQuery.toLowerCase())
+        h.blockName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        h.wardenInfo?.name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
@@ -102,7 +102,7 @@ export default function AdminPortal() {
                         { label: 'Approved Hostels', val: hostels.filter(h => h.approvalStatus === 'Approved').length || 0, icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10' },
                         { label: 'Total Listings', val: hostels.length || 0, icon: Building2, color: 'text-primary', bg: 'bg-primary/10' }
                     ].map((s, i) => (
-                        <div key={i} className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-white flex items-center justify-between group hover:shadow-card transition-all">
+                        <div key={i} className="bg-card p-8 rounded-[2.5rem] shadow-sm border border-white flex items-center justify-between group hover:shadow-card transition-all">
                             <div>
                                 <p className="text-sm font-black text-dark-light uppercase tracking-widest mb-1">{s.label}</p>
                                 <p className={`text-4xl font-black ${s.color}`}>{s.val}</p>
@@ -183,8 +183,8 @@ export default function AdminPortal() {
                                         <div className="text-center">
                                             <p className="text-[10px] font-black text-dark-light uppercase tracking-tighter mb-1">Status</p>
                                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${hostel.approvalStatus === 'Approved' ? 'bg-success/10 text-success' :
-                                                    hostel.approvalStatus === 'Pending' ? 'bg-accent/10 text-accent' :
-                                                        'bg-danger/10 text-danger'
+                                                hostel.approvalStatus === 'Pending' ? 'bg-accent/10 text-accent' :
+                                                    'bg-danger/10 text-danger'
                                                 }`}>
                                                 {hostel.approvalStatus}
                                             </span>

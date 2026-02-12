@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, Loader2, ArrowRight, ShieldCheck, UserCircle, LayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
 
-export default function LoginPage() {
+function LoginContent() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const returnUrl = searchParams.get('returnUrl');
+    const requestedRole = searchParams.get('role');
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -36,7 +39,9 @@ export default function LoginPage() {
 
             // Role-based redirection
             const role = data.user.role;
-            if (role === 'Admin') {
+            if (returnUrl) {
+                window.location.href = returnUrl;
+            } else if (role === 'Admin') {
                 window.location.href = '/admin';
             } else if (role === 'Warden') {
                 window.location.href = '/warden';
@@ -170,5 +175,17 @@ export default function LoginPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-light flex items-center justify-center">
+                <Loader2 className="w-12 h-12 text-primary animate-spin" />
+            </div>
+        }>
+            <LoginContent />
+        </Suspense>
     );
 }

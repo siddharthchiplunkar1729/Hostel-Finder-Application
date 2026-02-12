@@ -1,0 +1,68 @@
+name: HostelHub CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: hostelhub_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Seed Test Database
+        run: |
+          psql -h localhost -U postgres -d hostelhub_test -f scripts/init-db.sql
+        env:
+          PGPASSWORD: password
+
+      - name: Run Production Build
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/hostelhub_test?sslmode=disable
+          JWT_SECRET: ci_test_secret
+
+      - name: Smoke Test APIs
+        run: |
+          npm start &
+          sleep 10
+          node scripts/api-smoke-test.js
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/hostelhub_test?sslmode=disable
+          JWT_SECRET: ci_test_secret
+          API_URL: http://localhost:3000
+
+  deploy-ready:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Notification
+        run: echo "Code is verified and ready for production Docker deployment."

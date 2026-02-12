@@ -54,7 +54,8 @@ async function seed() {
                 desc: 'Premium block with AC rooms, high-speed WiFi, and 24/7 power backup. Located near the sports complex.',
                 rooms: 120, avail: 15, loc: 'North Campus', rating: 4.8, warden: warden1Res.rows[0].id,
                 img: ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5'],
-                fac: ['WiFi', 'Gym', 'Laundry', 'AC', 'Sports']
+                fac: ['WiFi', 'Gym', 'Laundry', 'AC', 'Sports'],
+                status: 'Approved'
             },
             {
                 name: 'B Block - Girls Hostel',
@@ -62,7 +63,8 @@ async function seed() {
                 desc: 'Secure and peaceful environment with lush green gardens and study halls.',
                 rooms: 100, avail: 8, loc: 'West Zone', rating: 4.9, warden: warden2Res.rows[0].id,
                 img: ['https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf'],
-                fac: ['WiFi', 'Library', 'Security', 'Green Campus', 'Shuttle']
+                fac: ['WiFi', 'Library', 'Security', 'Green Campus', 'Shuttle'],
+                status: 'Pending'
             },
             {
                 name: 'C Block - International',
@@ -70,7 +72,8 @@ async function seed() {
                 desc: 'State-of-the-art facilities for international students with single occupancy rooms.',
                 rooms: 50, avail: 45, loc: 'International Wing', rating: 4.7, warden: warden1Res.rows[0].id,
                 img: ['https://images.unsplash.com/photo-1512918760532-3ed465901853'],
-                fac: ['WiFi', 'AC', 'Single Room', 'Swimming Pool']
+                fac: ['WiFi', 'AC', 'Single Room', 'Swimming Pool'],
+                status: 'Approved'
             },
             {
                 name: 'D Block - Budget',
@@ -78,16 +81,17 @@ async function seed() {
                 desc: 'Affordable accommodation with essential amenities and proximity to the main canteen.',
                 rooms: 200, avail: 0, loc: 'South Campus', rating: 4.2, warden: warden1Res.rows[0].id,
                 img: ['https://images.unsplash.com/photo-1582719478250-c89cae4dc85b'],
-                fac: ['WiFi', 'Mess', 'Common Room']
+                fac: ['WiFi', 'Mess', 'Common Room'],
+                status: 'Rejected'
             }
         ];
 
         const blockIds = [];
         for (const b of blocksData) {
             const res = await client.query(
-                `INSERT INTO hostel_blocks (block_name, type, description, total_rooms, available_rooms, occupied_rooms, location, rating, warden_user_id, images, facilities) 
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
-                [b.name, b.type, b.desc, b.rooms, b.avail, b.rooms - b.avail, b.loc, b.rating, b.warden, b.img, b.fac]
+                `INSERT INTO hostel_blocks (block_name, type, description, total_rooms, available_rooms, occupied_rooms, location, rating, warden_user_id, images, facilities, approval_status) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+                [b.name, b.type, b.desc, b.rooms, b.avail, b.rooms - b.avail, b.loc, b.rating, b.warden, b.img, b.fac, b.status]
             );
             blockIds.push(res.rows[0].id);
         }
@@ -147,7 +151,7 @@ async function seed() {
         for (const bId of blockIds) {
             await client.query(
                 'INSERT INTO notices (hostel_block_id, title, content, priority) VALUES ($1, $2, $3, $4)',
-                [bId, 'Water Supply Maitenance', 'Water supply will be affected on Sunday 10am-2pm.', 'High']
+                [bId, 'Water Supply Maintenance', 'Water supply will be affected on Sunday 10am-2pm.', 'High']
             );
             await client.query(
                 'INSERT INTO notices (hostel_block_id, title, content, priority) VALUES ($1, $2, $3, $4)',

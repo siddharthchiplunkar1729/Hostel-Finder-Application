@@ -1,72 +1,71 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import HostelBlock from '@/models/HostelBlock';
+import pool from '@/lib/db';
 
-// GET /api/hostels/[id]/reviews - Get all reviews for a hostel
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        await dbConnect();
         const { id } = await params;
 
-        const hostel = await HostelBlock.findById(id).select('reviews averageRating totalReviews');
+        const reviewsRes = await pool.query(
+            'SELECT r.*, u.name as student_name FROM reviews r JOIN students s ON r.student_id = s.id JOIN users u ON s.user_id = u.id WHERE r.hostel_block_id = $1 ORDER BY r.created_at DESC',
+            [id]
+        );
 
-        if (!hostel) {
-            return NextResponse.json({ error: 'Hostel not found' }, { status: 404 });
-        }
+        const statsRes = await pool.query(
+            'SELECT AVG(rating) as average_rating, COUNT(*) as total_reviews FROM reviews WHERE hostel_block_id = $1',
+            [id]
+        );
+
+        const stats = statsRes.rows[0];
 
         return NextResponse.json({
-            reviews: hostel.reviews,
-            averageRating: hostel.averageRating,
-            totalReviews: hostel.totalReviews
+            reviews: reviewsRes.rows.map(r => ({ ...r, _id: r.id })),
+            averageRating: parseFloat(stats.average_rating || '0'),
+            totalReviews: parseInt(stats.total_reviews || '0')
         });
     } catch (error: any) {
+        console.error('Error fetching reviews:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
-// POST /api/hostels/[id]/reviews - Submit a new review
 export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const client = await pool.connect();
     try {
-        await dbConnect();
         const { id } = await params;
         const body = await request.json();
-        const { studentId, rating, reviewText, photos } = body;
+        const { studentId, rating, reviewText } = body;
 
-        // Validation... (should check if student is enrolled in this hostel)
-        // For now, simpler implementation:
+        await client.query('BEGIN');
 
-        const hostel = await HostelBlock.findById(id);
-        if (!hostel) {
-            return NextResponse.json({ error: 'Hostel not found' }, { status: 404 });
-        }
+        const insertRes = await client.query(
+            `INSERT INTO reviews (student_id, hostel_block_id, rating, review_text)
+             VALUES ($1, $2, $3, $4)
+             RETURNING *`,
+            [studentId, id, rating, reviewText]
+        );
 
-        const newReview = {
-            studentId,
-            rating,
-            reviewText,
-            helpful: 0,
-            photos: photos || [],
-            createdAt: new Date()
-        };
+        // Update overall rating in hostel_blocks
+        await client.query(
+            `UPDATE hostel_blocks 
+             SET rating = (SELECT AVG(rating) FROM reviews WHERE hostel_block_id = $1)
+             WHERE id = $1`,
+            [id]
+        );
 
-        hostel.reviews.push(newReview);
+        await client.query('COMMIT');
 
-        // Update average rating
-        const totalRating = hostel.reviews.reduce((acc: number, rev: any) => acc + rev.rating, 0);
-        hostel.totalReviews = hostel.reviews.length;
-        hostel.averageRating = totalRating / hostel.totalReviews;
-        hostel.rating = hostel.averageRating; // Main rating field
-
-        await hostel.save();
-
-        return NextResponse.json({ success: true, review: newReview });
+        return NextResponse.json({ success: true, review: { ...insertRes.rows[0], _id: insertRes.rows[0].id } });
     } catch (error: any) {
+        await client.query('ROLLBACK');
+        console.error('Error posting review:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
+    } finally {
+        client.release();
     }
 }

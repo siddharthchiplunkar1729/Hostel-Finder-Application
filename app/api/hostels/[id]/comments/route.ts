@@ -1,56 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import HostelBlock from '@/models/HostelBlock';
+import pool from '@/lib/db';
 
-// POST /api/hostels/[id]/comments - Submit a new comment/question
 export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        await dbConnect();
         const { id } = await params;
         const body = await request.json();
-        const { userId, userType, text } = body;
+        const { userId, userType, text, parentId } = body;
 
-        const hostel = await HostelBlock.findById(id);
-        if (!hostel) {
-            return NextResponse.json({ error: 'Hostel not found' }, { status: 404 });
-        }
+        const result = await pool.query(
+            `INSERT INTO hostel_comments (hostel_block_id, user_id, user_type, comment_text, parent_id)
+             VALUES ($1, $2, $3, $4, $5)
+             RETURNING *`,
+            [id, userId, userType, text, parentId || null]
+        );
 
-        const newComment = {
-            userId,
-            userType,
-            text,
-            replies: [],
-            createdAt: new Date()
-        };
-
-        hostel.comments.push(newComment);
-        await hostel.save();
-
-        return NextResponse.json({ success: true, comment: newComment });
+        return NextResponse.json({ success: true, comment: { ...result.rows[0], _id: result.rows[0].id } });
     } catch (error: any) {
+        console.error('Error creating comment:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
-// GET /api/hostels/[id]/comments - Get all comments for a hostel
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        await dbConnect();
         const { id } = await params;
 
-        const hostel = await HostelBlock.findById(id).select('comments');
-        if (!hostel) {
-            return NextResponse.json({ error: 'Hostel not found' }, { status: 404 });
-        }
+        const result = await pool.query(`
+            SELECT c.*, u.name as user_name 
+            FROM hostel_comments c
+            JOIN users u ON c.user_id = u.id
+            WHERE c.hostel_block_id = $1
+            ORDER BY c.created_at ASC
+        `, [id]);
 
-        return NextResponse.json(hostel.comments);
+        return NextResponse.json(result.rows.map(r => ({ ...r, _id: r.id, user: { name: r.user_name } })));
     } catch (error: any) {
+        console.error('Error fetching comments:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

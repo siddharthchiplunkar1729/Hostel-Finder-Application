@@ -1,184 +1,181 @@
-import MarketplaceHero from '@/components/MarketplaceHero';
-import FeaturedHostels from '@/components/FeaturedHostels';
-import StoriesSection from '@/components/StoriesSection';
-import CommunitiesSection from '@/components/CommunitiesSection';
-import MapComponent from '@/components/MapComponent';
-import { Shield, Award, Wifi, Users, ArrowRight, Home, CheckCircle, Search, UserCircle, ShieldCheck, LayoutDashboard } from 'lucide-react';
+"use client";
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import {
+  ArrowRight, MapPin, ShieldCheck, Zap,
+  Star, Users, Navigation, Globe, Search,
+  ChevronRight, Sparkles, Building2, Shield, Home,
+  CheckCircle2, LayoutDashboard, Loader2
+} from 'lucide-react';
+import dynamic from 'next/dynamic';
+const MapComponent = dynamic(() => import('@/components/MapComponent'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full bg-[#E5E7EB] dark:bg-card flex items-center justify-center">
+      <Loader2 className="w-12 h-12 text-primary animate-spin" />
+    </div>
+  )
+});
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Premium Hero with Role Selection */}
-      <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-        {/* Abstract Background Blobs */}
-        <div className="absolute top-0 left-0 w-full h-full -z-10">
-          <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[120px]" />
+      {/* Hero Section */}
+      <section className="relative min-h-[95vh] flex items-center justify-center pt-24 pb-12 overflow-hidden">
+        {/* Dynamic Background Elements */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-[5%] right-[-5%] w-[800px] h-[800px] bg-secondary/10 rounded-full blur-[140px] animate-pulse delay-700" />
+          <div className="absolute top-[20%] right-[10%] w-96 h-96 bg-accent/5 rounded-full blur-[100px]" />
         </div>
 
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border border-gray-100 shadow-sm mb-8 animate-fade-in">
-            <span className="flex h-2 w-2 rounded-full bg-primary animate-ping" />
-            <span className="text-xs font-black uppercase tracking-widest text-dark-light">The Future of Campus Housing</span>
-          </div>
-
-          <h1 className="text-5xl md:text-8xl font-black text-dark mb-8 tracking-tighter leading-[0.9]">
-            Your Journey <br /> Starts <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent">Right Here.</span>
-          </h1>
-
-          <p className="max-w-2xl mx-auto text-xl text-dark-light font-medium mb-16 leading-relaxed">
-            Choose your portal to begin. Whether you're finding a home, managing a block, or governing the platform, we've got you covered.
-          </p>
-
-          {/* Core Role Entry Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
-            {/* Student Card */}
-            <Link href="/auth/login?role=Student" className="group">
-              <div className="h-full p-10 bg-white rounded-[3rem] shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 relative overflow-hidden group-hover:-translate-y-2">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
-                <div className="w-20 h-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mb-8 mx-auto group-hover:scale-110 transition-all">
-                  <UserCircle size={40} strokeWidth={2.5} />
-                </div>
-                <h3 className="text-3xl font-black text-dark mb-4 tracking-tight">I'm a Student</h3>
-                <p className="text-dark-light font-medium mb-8">Browse verified hostels, take virtual tours, and apply in seconds.</p>
-                <div className="inline-flex items-center gap-2 font-black text-primary uppercase tracking-widest text-sm">
-                  Find Hostels <ArrowRight size={18} />
-                </div>
-              </div>
-            </Link>
-
-            {/* Warden Card */}
-            <Link href="/auth/login?role=Warden" className="group">
-              <div className="h-full p-10 bg-white rounded-[3rem] shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 relative overflow-hidden group-hover:-translate-y-2">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
-                <div className="w-20 h-20 bg-secondary/10 text-secondary rounded-[2rem] flex items-center justify-center mb-8 mx-auto group-hover:scale-110 transition-all">
-                  <ShieldCheck size={40} strokeWidth={2.5} />
-                </div>
-                <h3 className="text-3xl font-black text-dark mb-4 tracking-tight">I'm a Warden</h3>
-                <p className="text-dark-light font-medium mb-8">Manage student applications, mess menus, and block notices effortlessly.</p>
-                <div className="inline-flex items-center gap-2 font-black text-secondary uppercase tracking-widest text-sm">
-                  Warden Portal <ArrowRight size={18} />
-                </div>
-              </div>
-            </Link>
-
-            {/* Admin Card */}
-            <Link href="/auth/login?role=Admin" className="group">
-              <div className="h-full p-10 bg-white rounded-[3rem] shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-100 relative overflow-hidden group-hover:-translate-y-2">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
-                <div className="w-20 h-20 bg-accent/10 text-accent rounded-[2rem] flex items-center justify-center mb-8 mx-auto group-hover:scale-110 transition-all">
-                  <LayoutDashboard size={40} strokeWidth={2.5} />
-                </div>
-                <h3 className="text-3xl font-black text-dark mb-4 tracking-tight">Platform Admin</h3>
-                <p className="text-dark-light font-medium mb-8">Oversee all hostels, verify new registrations, and manage system health.</p>
-                <div className="inline-flex items-center gap-2 font-black text-accent uppercase tracking-widest text-sm">
-                  Console Access <ArrowRight size={18} />
-                </div>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Hostels with Preview Section */}
-      <section className="py-24 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
-            <div className="max-w-xl">
-              <span className="text-primary font-black uppercase tracking-widest text-sm mb-4 block">Top Picks</span>
-              <h2 className="text-4xl md:text-6xl font-black text-dark tracking-tight">Browse Premium <span className="text-primary italic">Live</span> Blocks</h2>
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="relative z-10 text-center lg:text-left space-y-8">
+            <div className="inline-flex items-center gap-2 px-6 py-2 bg-primary/10 text-primary rounded-full font-black text-xs uppercase tracking-[0.2em] shadow-sm border border-primary/20">
+              <Sparkles size={14} className="animate-pulse" />
+              Elite Campus Housing Network
             </div>
-            <Link href="/search" className="px-10 py-5 bg-dark text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-primary transition-all shadow-xl flex items-center gap-3">
-              Explore All <Search size={20} />
+
+            <h1 className="text-6xl md:text-8xl font-black text-dark tracking-tighter leading-[0.9]">
+              Smart Living for <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-dark to-secondary">Modern Students</span>
+            </h1>
+
+            <p className="text-xl md:text-2xl text-dark-light font-medium max-w-xl leading-relaxed">
+              The ultimate platform for university housing. Secure, verified, and community-driven residences designed for academic success.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+              <Link
+                href="/search"
+                className="group px-10 py-5 bg-dark text-white rounded-[2rem] font-black text-xl flex items-center justify-center gap-3 hover:bg-primary hover:scale-[1.03] transition-all shadow-elevated"
+              >
+                Explorer Map
+                <Navigation size={24} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              </Link>
+              <Link
+                href="/auth/signup"
+                className="group px-10 py-5 bg-white text-dark border-4 border-dark rounded-[2rem] font-black text-xl flex items-center justify-center hover:bg-light transition-all shadow-card"
+              >
+                Get Started
+                <ChevronRight size={24} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+
+            {/* Social Proof */}
+            <div className="flex flex-col sm:flex-row items-center gap-6 pt-8">
+              <div className="flex -space-x-4">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="w-12 h-12 rounded-full border-4 border-white bg-gray-200 overflow-hidden shadow-sm">
+                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt="user avatar" />
+                  </div>
+                ))}
+              </div>
+              <div className="text-sm font-bold text-dark-light">
+                <span className="text-dark font-black">2,400+</span> Students found their <br />perfect room this semester
+              </div>
+            </div>
+          </div>
+
+          {/* Hero Illustration / Map Preview */}
+          <div className="relative">
+            <div className="aspect-square bg-gradient-to-br from-white to-gray-50 rounded-[5rem] shadow-premium border-8 border-white overflow-hidden group">
+              <MapComponent />
+
+              {/* Floating Stats Card */}
+              <div className="absolute bottom-10 left-10 bg-white/95 backdrop-blur-xl p-8 rounded-[3rem] shadow-elevated border border-white animate-bounce">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-secondary text-white rounded-2xl flex items-center justify-center shadow-lg">
+                    <ShieldCheck size={28} />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-black text-dark">Verified</div>
+                    <div className="text-sm font-bold text-dark-light">100% Quality Assurance</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Actions / Role Selection */}
+      <section className="py-24 max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Student Card */}
+          <div className="group bg-white p-12 rounded-[4rem] shadow-card hover:shadow-elevated transition-all border-4 border-transparent hover:border-primary/10">
+            <div className="w-20 h-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mb-8 group-hover:scale-110 transition-transform shadow-inner text-primary">
+              <Users size={40} strokeWidth={2.5} />
+            </div>
+            <h3 className="text-3xl font-black text-dark mb-4">For Students</h3>
+            <p className="text-dark-light font-medium mb-8 leading-relaxed">Search through thousands of verified rooms, virtual tours, and student reviews.</p>
+            <Link href="/search" className="inline-flex items-center gap-2 font-black text-primary uppercase tracking-widest text-sm hover:gap-4 transition-all">
+              Browse Listings <ArrowRight size={20} />
             </Link>
           </div>
-          <FeaturedHostels />
+
+          {/* Warden Card */}
+          <div className="group bg-white p-12 rounded-[4rem] shadow-card hover:shadow-elevated transition-all border-4 border-transparent hover:border-secondary/10">
+            <div className="w-20 h-20 bg-secondary/10 text-secondary rounded-[2rem] flex items-center justify-center mb-8 group-hover:scale-110 transition-transform shadow-inner text-secondary">
+              <Building2 size={40} strokeWidth={2.5} />
+            </div>
+            <h3 className="text-3xl font-black text-dark mb-4">For Wardens</h3>
+            <p className="text-dark-light font-medium mb-8 leading-relaxed">Manage your hostel blocks, track occupancy, and automate student approvals with ease.</p>
+            <Link href="/auth/signup?role=Warden" className="inline-flex items-center gap-2 font-black text-secondary uppercase tracking-widest text-sm hover:gap-4 transition-all">
+              Host a Block <ArrowRight size={20} />
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Map Preview Section - Placeholder for Google Maps */}
-      <section className="py-24 px-6 bg-light overflow-hidden">
-        <div className="max-w-7xl mx-auto text-center mb-16">
-          <h2 className="text-4xl font-black text-dark mb-4">Hostels Near You</h2>
-          <p className="text-dark-light font-medium">Use our interactive map to find the perfect location.</p>
-        </div>
-        <div className="max-w-7xl mx-auto bg-white rounded-[4rem] h-[600px] shadow-2xl border-8 border-white relative overflow-hidden group cursor-pointer">
-          <MapComponent />
-        </div>
-      </section>
-
-      {/* Social Communities */}
-      <div className="max-w-7xl mx-auto px-6 py-24">
-        <StoriesSection />
-        <CommunitiesSection />
-      </div>
-
-      {/* How It Works with Premium Icons */}
+      {/* How It Works */}
       <section className="py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-black text-dark mb-4 tracking-tight leading-tight">
-              Finding a hostel should be <span className="text-primary italic">simple.</span>
+          <div className="text-center mb-20 space-y-4">
+            <h2 className="text-5xl md:text-6xl font-black text-dark tracking-tighter">
+              Housing made <span className="text-primary underline decoration-8 decoration-accent/20 underline-offset-4">effortless.</span>
             </h2>
-            <p className="text-xl text-dark-light font-medium">Three easy steps to your new campus life.</p>
+            <p className="text-xl text-dark-light font-medium">Three steps to your elite campus residence.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
             {[
-              {
-                step: '01',
-                icon: Search,
-                title: 'Search & Compare',
-                desc: 'Browse hundreds of verified hostels with real student reviews and high-quality virtual tours.',
-                color: 'bg-primary'
-              },
-              {
-                step: '02',
-                icon: Shield,
-                title: 'Apply Securely',
-                desc: 'Submit your application directly to the warden. Safe, digital, and transparent process.',
-                color: 'bg-secondary'
-              },
-              {
-                step: '03',
-                icon: Home,
-                title: 'Move In',
-                desc: 'Once accepted, receive your digital credentials and move into your new home. Easy as that.',
-                color: 'bg-accent'
-              }
+              { icon: Search, title: 'Find & Compare', desc: 'Browse hundreds of verified hostels with real student reviews and VR tours.', color: 'bg-primary' },
+              { icon: Shield, title: 'Apply Securely', desc: 'Submit applications directly. Safe, digital, and 100% transparent.', color: 'bg-secondary' },
+              { icon: Home, title: 'Move In', desc: 'Get accepted and move into your new home. Academic success follows.', color: 'bg-accent' }
             ].map((item, idx) => (
-              <div key={idx} className="relative z-10 flex flex-col items-center text-center group">
-                <div className={`w-28 h-28 ${item.color} text-white rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl group-hover:scale-110 transition-transform duration-500 rotate-3 group-hover:rotate-0`}>
+              <div key={idx} className="flex flex-col items-center text-center group">
+                <div className={`w-32 h-32 ${item.color} text-white rounded-[3rem] flex items-center justify-center mb-8 shadow-elevated group-hover:rotate-6 transition-all`}>
                   <item.icon size={48} strokeWidth={2.5} />
                 </div>
                 <h3 className="text-2xl font-black text-dark mb-4">{item.title}</h3>
-                <p className="text-dark-light font-medium leading-relaxed">{item.desc}</p>
+                <p className="text-dark-light font-medium leading-relaxed max-w-xs">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Footer Meta Stats */}
-      <section className="py-20 px-6 border-t border-gray-100 bg-[#F8FAFC]">
+      {/* Quality Benchmarks */}
+      <section className="py-20 px-6 border-t border-gray-100 bg-light/30">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 text-center md:text-left">
           <div className="space-y-4">
-            <span className="font-black text-3xl tracking-tighter text-dark">HOSTEL<span className="text-primary">HUB</span>.</span>
-            <p className="text-dark-light font-medium text-sm">Ensuring student safety and comfort <br /> across 500+ verified campuses.</p>
+            <span className="font-black text-3xl tracking-tighter text-dark underline decoration-4 decoration-primary underline-offset-4">HOSTELHUB</span>
+            <p className="text-dark-light font-medium text-sm">Ensuring student stability across <br /> 500+ verified campus networks.</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-12 font-black text-xs tracking-[0.2em] uppercase text-dark-light/50">
+          <div className="flex flex-wrap justify-center gap-12 font-black text-[10px] tracking-[0.3em] uppercase text-dark-light/40">
             <div className="flex flex-col gap-2">
-              <span className="text-dark">ISO 9001</span>
-              <span>Quality Certified</span>
+              <span className="text-dark font-black">ISO 9001:2023</span>
+              <span>Operationally Certified</span>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="text-dark">256-BIT</span>
-              <span>AES Encryption</span>
+              <span className="text-dark font-black">AES 256-BIT</span>
+              <span>Security Encryption</span>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="text-dark">24/7 SUPPORT</span>
-              <span>Always Active</span>
+              <span className="text-dark font-black">24/7 REDLINE</span>
+              <span>Priority Support</span>
             </div>
           </div>
         </div>

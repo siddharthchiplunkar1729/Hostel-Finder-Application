@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Users, Wifi, Dumbbell, BookOpen, Utensils, Video, MapPin } from 'lucide-react';
+import { Building2, Users, Wifi, Dumbbell, BookOpen, Utensils, Video, MapPin, Star } from 'lucide-react';
 import Link from 'next/link';
 
 interface HostelBlockCardProps {
@@ -34,90 +34,83 @@ export default function HostelBlockCard({ block }: HostelBlockCardProps) {
     const occupancyPercentage = ((block.totalRooms - block.availableRooms) / block.totalRooms) * 100;
 
     return (
-        <div className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-floating transition-all duration-300 hover:-translate-y-1 border border-border">
-            {/* Image */}
-            <div className="relative h-48 overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20">
+        <div className="group bg-white rounded-[2.5rem] overflow-hidden shadow-card hover:shadow-premium transition-all duration-500 hover:-translate-y-2 border border-transparent hover:border-primary/5">
+            {/* Image Section */}
+            <div className="relative h-64 overflow-hidden">
                 {block.images && block.images.length > 0 ? (
                     <img
                         src={block.images[0]}
                         alt={block.blockName}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <Building2 size={64} className="text-primary/30" />
+                    <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
+                        <Building2 size={64} className="text-primary/20" />
                     </div>
                 )}
 
-                {/* Type Badge */}
-                <div className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-bold ${block.type === 'Boys' ? 'bg-primary text-white' :
-                    block.type === 'Girls' ? 'bg-secondary text-white' :
-                        'bg-accent text-white'
-                    }`}>
-                    {block.type} Hostel
+                {/* Overlays */}
+                <div className="absolute inset-0 bg-gradient-to-t from-dark/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                {/* Badges */}
+                <div className="absolute top-6 left-6 flex flex-col gap-2">
+                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-premium ${block.type === 'Boys' ? 'bg-primary text-white' :
+                        block.type === 'Girls' ? 'bg-secondary text-white' :
+                            'bg-accent text-white'
+                        }`}>
+                        {block.type} Only
+                    </span>
+                    {block.availableRooms <= 5 && block.availableRooms > 0 && (
+                        <span className="px-4 py-1.5 bg-danger text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg animate-pulse">
+                            Almost Full
+                        </span>
+                    )}
                 </div>
 
-                {/* Availability Badge */}
-                <div className={`absolute top-4 left-4 px-3 py-1.5 rounded-full text-xs font-bold ${block.availableRooms > 10 ? 'bg-success text-white' :
-                    block.availableRooms > 0 ? 'bg-accent text-white' :
-                        'bg-danger text-white'
-                    }`}>
-                    {block.availableRooms} Rooms Available
+                {/* Rating Badge */}
+                <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-premium">
+                    <Star size={14} className="text-accent" fill="currentColor" />
+                    <span className="text-xs font-black text-dark">{block.rating || '4.8'}</span>
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="p-6">
-                {/* Header */}
-                <div className="mb-4">
-                    <h3 className="text-xl font-bold text-dark mb-1 group-hover:text-primary transition-colors">
+            {/* Content Section */}
+            <div className="p-8">
+                <div className="mb-6">
+                    <h3 className="text-2xl font-black text-dark mb-2 tracking-tight group-hover:text-primary transition-colors">
                         {block.blockName}
                     </h3>
-                    <p className="text-sm text-dark-light line-clamp-2">
-                        {block.description}
-                    </p>
+                    <div className="flex items-center gap-2 text-dark-light font-bold text-sm">
+                        <MapPin size={16} className="text-primary" />
+                        University North Campus
+                    </div>
                 </div>
 
-                {/* Occupancy Bar */}
-                <div className="mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-semibold text-dark-light">Occupancy</span>
-                        <span className="text-xs font-bold text-dark">{occupancyPercentage.toFixed(0)}%</span>
+                {/* Occupancy Progress */}
+                <div className="mb-8 space-y-3">
+                    <div className="flex justify-between items-end">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-dark-light">Live Occupancy</span>
+                        <span className="text-sm font-black text-dark">{occupancyPercentage.toFixed(0)}%</span>
                     </div>
-                    <div className="w-full bg-light rounded-full h-2 overflow-hidden">
+                    <div className="w-full bg-light rounded-full h-2.5 overflow-hidden p-0.5 border border-gray-100">
                         <div
-                            className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-500"
+                            className={`h-full rounded-full transition-all duration-1000 ${occupancyPercentage > 90 ? 'bg-danger' :
+                                occupancyPercentage > 70 ? 'bg-accent' : 'bg-primary'
+                                }`}
                             style={{ width: `${occupancyPercentage}%` }}
                         />
                     </div>
                 </div>
 
-                {/* Facilities */}
-                <div className="mb-4">
-                    <div className="flex flex-wrap gap-2">
-                        {block.facilities.slice(0, 4).map((facility, idx) => {
-                            const Icon = facilityIcons[facility] || Building2;
-                            return (
-                                <div
-                                    key={idx}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-light rounded-lg text-xs font-medium text-dark"
-                                >
-                                    <Icon size={14} className="text-primary" />
-                                    {facility}
-                                </div>
-                            );
-                        })}
+                {/* Info Grid */}
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="bg-light/50 p-4 rounded-2xl border border-gray-50">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-dark-light mb-1">Available</div>
+                        <div className="text-lg font-black text-dark">{block.availableRooms} Units</div>
                     </div>
-                </div>
-
-                {/* Warden Info */}
-                <div className="flex items-center gap-3 pb-4 mb-4 border-b border-border">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
-                        {block.wardenInfo.name.charAt(0)}
-                    </div>
-                    <div>
-                        <p className="text-xs text-dark-light font-medium">Warden</p>
-                        <p className="text-sm font-bold text-dark">{block.wardenInfo.name}</p>
+                    <div className="bg-light/50 p-4 rounded-2xl border border-gray-50">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-dark-light mb-1">Base Rent</div>
+                        <div className="text-lg font-black text-dark">₹12.5k<span className="text-[10px] ml-1">/mo</span></div>
                     </div>
                 </div>
 
@@ -125,19 +118,19 @@ export default function HostelBlockCard({ block }: HostelBlockCardProps) {
                 <div className="flex gap-3">
                     <Link
                         href={`/hostels/${block._id}`}
-                        className="flex-1 bg-primary hover:bg-primary-hover text-white text-center py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm hover:shadow-md"
+                        className="flex-1 bg-dark text-white text-center py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all hover:bg-primary hover:shadow-premium active:scale-95"
                     >
-                        View Details
+                        View Property
                     </Link>
                     {block.virtualTourUrl && (
                         <a
                             href={block.virtualTourUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-4 py-2.5 bg-light hover:bg-light-hover rounded-xl transition-all flex items-center justify-center"
+                            className="px-5 py-4 bg-light text-dark rounded-2xl border border-gray-100 transition-all hover:bg-white hover:shadow-card flex items-center justify-center group/btn"
                             title="Virtual Tour"
                         >
-                            <Video size={18} className="text-primary" />
+                            <Video size={20} className="group-hover/btn:scale-110 transition-transform" />
                         </a>
                     )}
                 </div>

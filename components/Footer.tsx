@@ -10,23 +10,23 @@ export default function Footer() {
             <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] -z-0" />
 
             <div className="max-w-7xl mx-auto px-6 relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-20 mb-20">
                     {/* Brand column */}
                     <div className="space-y-8">
-                        <Link href="/" className="flex items-center gap-2 group">
-                            <div className="bg-gradient-to-br from-primary to-secondary text-white p-2.5 rounded-2xl group-hover:scale-110 transition-transform shadow-lg">
+                        <Link href="/" className="flex items-center gap-3 group">
+                            <div className="bg-primary text-white p-3 rounded-2xl group-hover:rotate-12 transition-all shadow-premium">
                                 <GraduationCap size={28} strokeWidth={2.5} />
                             </div>
-                            <span className="text-3xl font-black tracking-tight">
-                                Hostel<span className="text-primary">Hub</span>.
+                            <span className="text-3xl font-black tracking-tighter">
+                                HOSTEL<span className="text-primary underline decoration-4 decoration-accent underline-offset-4">HUB</span>
                             </span>
                         </Link>
-                        <p className="text-white/50 text-lg leading-relaxed font-medium">
+                        <p className="text-white/60 text-lg leading-relaxed font-medium">
                             Empowering university campus life through seamless, verified, and community-driven housing solutions.
                         </p>
                         <div className="flex gap-4">
                             {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
-                                <a key={i} href="#" className="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center hover:bg-primary hover:text-white hover:-translate-y-1 transition-all duration-300">
+                                <a key={i} href="#" className="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center hover:bg-primary hover:text-white hover:-translate-y-2 hover:shadow-premium transition-all duration-300">
                                     <Icon size={20} />
                                 </a>
                             ))}

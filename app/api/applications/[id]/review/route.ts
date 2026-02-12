@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
+import { withWarden } from '@/lib/middleware';
+import { AuthenticatedRequest } from '@/types';
+
 // PATCH /api/applications/[id]/review - Warden reviews (Accept/Reject) an application
-export async function PATCH(
-    request: NextRequest,
-    context: { params: Promise<{ id: string }> }
-) {
+export const PATCH = withWarden(async (
+    request: AuthenticatedRequest,
+    { params }: { params: Promise<{ id: string }> }
+) => {
     const client = await pool.connect();
     try {
-        const { id } = await context.params;
+        const { id } = await params;
         const body = await request.json();
-        const { status, notes, wardenId } = body;
+        const { status, notes } = body;
+        const wardenId = request.user.id;
 
         if (!['Accepted', 'Rejected'].includes(status)) {
             return NextResponse.json(
@@ -121,4 +125,4 @@ export async function PATCH(
     } finally {
         client.release();
     }
-}
+});

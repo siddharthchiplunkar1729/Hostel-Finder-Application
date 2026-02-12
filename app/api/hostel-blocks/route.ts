@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
             SELECT hb.*, u.name as warden_name, u.phone as warden_phone
             FROM hostel_blocks hb
             LEFT JOIN users u ON hb.warden_user_id = u.id
-            WHERE 1=1
+            WHERE (hb.approval_status = 'Approved' OR hb.approval_status IS NULL)
         `;
         const params: any[] = [];
         let paramIndex = 1;

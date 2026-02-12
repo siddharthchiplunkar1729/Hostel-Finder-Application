@@ -56,121 +56,122 @@ export default function MessMenuCard({ menu }: MessMenuCardProps) {
     const isToday = new Date(menu.date).toDateString() === new Date().toDateString();
 
     return (
-        <div className="bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-floating transition-all">
-            {/* Header */}
-            <div className={`p-6 ${menu.specialMenu
-                ? 'bg-gradient-to-r from-accent to-orange-400'
-                : 'bg-gradient-to-r from-primary to-secondary'} text-white`}>
-                <div className="flex items-start justify-between">
+        <div className="group bg-white rounded-[4rem] overflow-hidden shadow-card hover:shadow-elevated transition-all duration-500 border border-gray-50">
+            {/* Elite Header */}
+            <div className={`p-10 relative overflow-hidden ${menu.specialMenu
+                ? 'bg-gradient-to-br from-accent to-orange-400'
+                : 'bg-dark'} text-white`}>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-[80px] -z-0" />
+                <div className="relative z-10 flex items-start justify-between">
                     <div>
-                        <h3 className="text-2xl font-bold mb-1">{menu.day}</h3>
-                        <p className="text-sm opacity-90">
-                            {new Date(menu.date).toLocaleDateString('en-US', {
-                                month: 'long',
-                                day: 'numeric',
-                                year: 'numeric'
-                            })}
+                        <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-4xl font-black tracking-tighter">{menu.day}</h3>
+                            {isToday && (
+                                <span className="px-4 py-1.5 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-premium">
+                                    Current Day
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-white/40 font-bold uppercase tracking-[0.2em] text-[10px]">
+                            {new Date(menu.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                         </p>
-                        {isToday && (
-                            <span className="inline-block mt-2 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-bold">
-                                📍 Today's Menu
-                            </span>
-                        )}
                     </div>
-                    <Utensils size={32} className="opacity-80" />
+                    <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center text-primary">
+                        <Utensils size={32} />
+                    </div>
                 </div>
                 {menu.notes && (
-                    <div className="mt-3 px-3 py-2 bg-white/15 backdrop-blur-sm rounded-lg">
-                        <p className="text-sm font-medium">✨ {menu.notes}</p>
+                    <div className="mt-8 p-6 bg-white/5 backdrop-blur-xl rounded-[2rem] border border-white/10">
+                        <p className="text-sm font-black italic opacity-80 leading-relaxed">" {menu.notes} "</p>
                     </div>
                 )}
             </div>
 
-            {/* Meals */}
-            <div className="p-6 space-y-4">
+            {/* Culinary Selections */}
+            <div className="p-10 space-y-8">
                 {menu.meals.map((meal, idx) => {
                     const totalRatings = meal.thumbsUp + meal.thumbsDown;
-                    const positivePercentage = totalRatings > 0
-                        ? (meal.thumbsUp / totalRatings) * 100
-                        : 50;
+                    const positivePercentage = totalRatings > 0 ? (meal.thumbsUp / totalRatings) * 100 : 50;
 
                     return (
-                        <div key={idx} className="group bg-light rounded-xl p-4 hover:shadow-sm transition-all">
-                            {/* Meal Header */}
-                            <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${MEAL_COLORS[meal.mealType]} flex items-center justify-center text-2xl shadow-sm`}>
-                                        {MEAL_ICONS[meal.mealType]}
+                        <div key={idx} className="group/meal space-y-6 pb-8 border-b border-gray-50 last:border-0 last:pb-0">
+                            {/* Meal Info Hub */}
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <div className="flex items-center gap-6">
+                                    <div className={`w-20 h-20 rounded-[2.5rem] bg-gradient-to-br ${MEAL_COLORS[meal.mealType] || 'from-gray-200 to-gray-100'} flex items-center justify-center text-4xl shadow-sm group-hover/meal:scale-110 transition-transform`}>
+                                        {MEAL_ICONS[meal.mealType] || '🍽️'}
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-dark">{meal.mealType}</h4>
-                                        <div className="flex items-center gap-2 text-xs text-dark-light">
-                                            <Clock size={12} />
-                                            <span>{meal.timings}</span>
-                                            {meal.calories && (
-                                                <>
-                                                    <span>•</span>
-                                                    <span>{meal.calories} cal</span>
-                                                </>
-                                            )}
+                                        <div className="flex items-center gap-3 mb-1">
+                                            <h4 className="text-2xl font-black text-dark tracking-tight">{meal.mealType}</h4>
                                             {meal.isVeg && (
-                                                <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-xs font-bold">
-                                                    🌱 VEG
-                                                </span>
+                                                <div className="w-4 h-4 rounded-full border-2 border-green-500 flex items-center justify-center p-0.5">
+                                                    <div className="w-full h-full bg-green-500 rounded-full" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-dark-light">
+                                            <div className="flex items-center gap-1.5">
+                                                <Clock size={12} className="text-primary" />
+                                                {meal.timings}
+                                            </div>
+                                            {meal.calories && (
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="text-secondary">•</span>
+                                                    {meal.calories} Essential Calories
+                                                </div>
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Rating Buttons */}
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-3">
                                     <button
                                         onClick={() => handleRating(meal.mealType, 'up')}
-                                        className={`p-2 rounded-lg transition-all ${activeRatings[meal.mealType] === 'up'
-                                                ? 'bg-success text-white shadow-sm'
-                                                : 'bg-white hover:bg-success/10 text-dark-light hover:text-success'
-                                            }`}
+                                        className={`px-6 py-3 rounded-2xl flex items-center gap-2 transition-all ${activeRatings[meal.mealType] === 'up'
+                                            ? 'bg-success text-white shadow-premium'
+                                            : 'bg-light hover:bg-success/10 text-dark-light hover:text-success'}`}
                                     >
-                                        <ThumbsUp size={16} />
+                                        <ThumbsUp size={18} />
+                                        <span className="font-black text-xs uppercase tracking-widest">{meal.thumbsUp}</span>
                                     </button>
                                     <button
                                         onClick={() => handleRating(meal.mealType, 'down')}
-                                        className={`p-2 rounded-lg transition-all ${activeRatings[meal.mealType] === 'down'
-                                                ? 'bg-danger text-white shadow-sm'
-                                                : 'bg-white hover:bg-danger/10 text-dark-light hover:text-danger'
-                                            }`}
+                                        className={`px-6 py-3 rounded-2xl flex items-center gap-2 transition-all ${activeRatings[meal.mealType] === 'down'
+                                            ? 'bg-danger text-white shadow-premium'
+                                            : 'bg-light hover:bg-danger/10 text-dark-light hover:text-danger'}`}
                                     >
-                                        <ThumbsDown size={16} />
+                                        <ThumbsDown size={18} />
+                                        <span className="font-black text-xs uppercase tracking-widest">{meal.thumbsDown}</span>
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Items */}
-                            <div className="flex flex-wrap gap-2 mb-3">
+                            {/* Menu Items Grid */}
+                            <div className="flex flex-wrap gap-3">
                                 {meal.items.map((item, itemIdx) => (
-                                    <span
+                                    <div
                                         key={itemIdx}
-                                        className="px-3 py-1.5 bg-white rounded-lg text-sm font-medium text-dark border border-gray-100"
+                                        className="px-6 py-3 bg-light/50 hover:bg-white hover:shadow-card border border-transparent hover:border-gray-100 rounded-[1.5rem] text-sm font-black text-dark transition-all"
                                     >
                                         {item}
-                                    </span>
+                                    </div>
                                 ))}
                             </div>
 
-                            {/* Rating Bar */}
-                            {totalRatings > 0 && (
-                                <div className="flex items-center gap-3">
-                                    <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-gradient-to-r from-success to-secondary transition-all duration-500"
-                                            style={{ width: `${positivePercentage}%` }}
-                                        />
-                                    </div>
-                                    <div className="text-xs font-bold text-dark-light whitespace-nowrap">
-                                        {meal.thumbsUp} 👍 / {meal.thumbsDown} 👎
-                                    </div>
+                            {/* Popularity Index */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-dark-light opacity-60">
+                                    <span>Resident Saturation</span>
+                                    <span>{positivePercentage.toFixed(0)}% Approval</span>
                                 </div>
-                            )}
+                                <div className="w-full h-1.5 bg-light rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-success to-primary transition-all duration-1000"
+                                        style={{ width: `${positivePercentage}%` }}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     );
                 })}

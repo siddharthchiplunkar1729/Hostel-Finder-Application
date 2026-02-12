@@ -108,7 +108,7 @@ export default function WardenPortal() {
                         { label: 'Rooms Left', val: stats.available, icon: Home, color: 'text-success', bg: 'bg-success/10' },
                         { label: 'Complaints', val: 0, icon: AlertCircleShim, color: 'text-danger', bg: 'bg-danger/10' }
                     ].map((s, i) => (
-                        <div key={i} className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-white hover:shadow-card transition-all group relative overflow-hidden">
+                        <div key={i} className="bg-card p-8 rounded-[2.5rem] shadow-sm border border-white hover:shadow-card transition-all group relative overflow-hidden">
                             <div className={`absolute top-0 right-0 w-24 h-24 ${s.bg} rounded-bl-[100px] opacity-20 -z-0 group-hover:scale-125 transition-transform`} />
                             <div className={`w-14 h-14 ${s.bg} ${s.color} rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform relative z-10`}>
                                 <s.icon size={28} />
@@ -137,7 +137,7 @@ export default function WardenPortal() {
                         ) : applications.length > 0 ? (
                             <div className="space-y-6">
                                 {applications.filter(a => a.status === 'Pending').map((app) => (
-                                    <div key={app._id} className="bg-white p-8 rounded-[3rem] shadow-sm border border-transparent hover:border-secondary/20 hover:shadow-card transition-all flex flex-col md:flex-row items-center gap-8 group">
+                                    <div key={app._id} className="bg-card p-8 rounded-[3rem] shadow-sm border border-transparent hover:border-secondary/20 hover:shadow-card transition-all flex flex-col md:flex-row items-center gap-8 group">
                                         <div className="w-24 h-24 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-[2rem] flex items-center justify-center text-secondary text-4xl font-black shadow-inner group-hover:scale-105 transition-transform">
                                             {app.studentId?.name?.charAt(0) || 'S'}
                                         </div>
@@ -215,7 +215,7 @@ export default function WardenPortal() {
                                     className="w-full py-5 bg-white text-dark rounded-2xl font-black text-sm uppercase tracking-widest mb-6 hover:bg-primary hover:text-white transition-all shadow-xl flex items-center justify-center gap-3"
                                 >
                                     <FileText size={20} />
-                                    Post New notice
+                                    Post New Notice
                                 </button>
                                 <Link href="/dashboard/notices" className="block text-center text-sm font-bold text-white/50 hover:text-white transition-colors">Broadcast History →</Link>
                             </div>

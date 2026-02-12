@@ -16,16 +16,16 @@ module.exports = {
                 primary: {
                     DEFAULT: "hsl(var(--primary))",
                     foreground: "hsl(var(--primary-foreground))",
-                    hover: "hsl(var(--primary) / 0.9)", // Approximation
-                    light: "hsl(var(--primary) / 0.8)",
-                    dark: "hsl(var(--primary))", // Fallback or assume darker
+                    hover: "hsl(var(--primary-hover))",
+                    light: "hsl(var(--primary-light))",
+                    dark: "hsl(var(--primary-dark))",
                 },
                 secondary: {
                     DEFAULT: "hsl(var(--secondary))",
                     foreground: "hsl(var(--secondary-foreground))",
-                    hover: "hsl(var(--secondary) / 0.9)",
-                    light: "hsl(var(--secondary) / 0.8)",
-                    dark: "hsl(var(--secondary))",
+                    hover: "hsl(var(--secondary-hover))",
+                    light: "hsl(var(--secondary-light))",
+                    dark: "hsl(var(--secondary-dark))",
                 },
                 destructive: {
                     DEFAULT: "hsl(var(--destructive))",
@@ -38,8 +38,8 @@ module.exports = {
                 accent: {
                     DEFAULT: "hsl(var(--accent))",
                     foreground: "hsl(var(--accent-foreground))",
-                    hover: "hsl(var(--accent) / 0.9)",
-                    light: "hsl(var(--accent) / 0.8)",
+                    hover: "hsl(var(--accent-hover))",
+                    light: "hsl(var(--accent-light))",
                 },
                 popover: {
                     DEFAULT: "hsl(var(--popover))",
@@ -51,56 +51,55 @@ module.exports = {
                 },
                 // Aliases for retro-compatibility
                 dark: {
-                    DEFAULT: "hsl(var(--foreground))", // Was #2D3748
-                    light: "hsl(var(--muted-foreground))",   // Was #718096
+                    DEFAULT: "#1E293B", // Deeper Slate
+                    light: "#64748B",
                     card: "hsl(var(--card))",
                 },
                 light: {
-                    DEFAULT: "hsl(var(--background))", // Was #F7FAFC
-                    card: "hsl(var(--card))", // Was #FFFFFF
-                    hover: "hsl(var(--muted))", // Was #EDF2F7
+                    DEFAULT: "#F8FAFC",
+                    card: "#FFFFFF",
+                    hover: "#F1F5F9",
                 },
-                // Status badge colors - keep static or map to vars
+                // Status badge colors
                 allocated: {
-                    bg: '#C6F6D5',
-                    text: '#22543D',
+                    bg: '#DCFCE7',
+                    text: '#166534',
                 },
                 vacant: {
-                    bg: '#BEE3F8',
-                    text: '#2A4365',
+                    bg: '#DBEAFE',
+                    text: '#1E40AF',
                 },
                 maintenance: {
-                    bg: '#FED7D7',
-                    text: '#742A2A',
+                    bg: '#FEE2E2',
+                    text: '#991B1B',
                 },
-                // Priority colors
-                'priority-high': '#C53030',
-                'priority-medium': '#D69E2E',
-                'priority-low': '#38A169',
-                // Success and Danger colors for buttons
+                // Status colors
                 success: {
-                    DEFAULT: '#38A169',   // Green
-                    light: '#C6F6D5',      // Light green
-                    dark: '#22543D',       // Dark green
+                    DEFAULT: '#22C55E',
+                    light: '#DCFCE7',
+                    dark: '#166534',
                 },
                 danger: {
-                    DEFAULT: '#E53E3E',    // Red
-                    light: '#FED7D7',      // Light red
-                    dark: '#742A2A',       // Dark red
+                    DEFAULT: '#EF4444',
+                    light: '#FEE2E2',
+                    dark: '#991B1B',
                 },
             },
             fontFamily: {
-                sans: ['Inter', 'system-ui', 'sans-serif'],
+                sans: ['Inter', 'Outfit', 'system-ui', 'sans-serif'],
             },
             borderRadius: {
                 'xl': '12px',
                 '2xl': '16px',
                 '3xl': '24px',
+                '4xl': '32px',
+                '5xl': '48px',
             },
             boxShadow: {
-                'card': '0 4px 12px rgba(43, 108, 176, 0.08)',
-                'floating': '0 8px 24px rgba(43, 108, 176, 0.12)',
-                'elevated': '0 12px 32px rgba(43, 108, 176, 0.15)',
+                'card': '0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 15px -3px rgba(0, 0, 0, 0.02)',
+                'floating': '0 20px 50px -10px rgba(0, 0, 0, 0.08)',
+                'elevated': '0 30px 60px -12px rgba(0, 0, 0, 0.12)',
+                'premium': '0 25px 50px -12px rgba(45, 108, 176, 0.15)',
             },
             animation: {
                 'fade-in': 'fadeIn 0.3s ease-in',

@@ -1,31 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
-import HostelBlock from '@/models/HostelBlock';
+import pool from '@/lib/db';
 
-// POST /api/hostels/[id]/reviews/[reviewId]/helpful - Mark a review as helpful
 export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string, reviewId: string }> }
 ) {
     try {
-        await dbConnect();
-        const { id, reviewId } = await params;
+        const { reviewId } = await params;
 
-        const hostel = await HostelBlock.findById(id);
-        if (!hostel) {
-            return NextResponse.json({ error: 'Hostel not found' }, { status: 404 });
-        }
+        const result = await pool.query(
+            `UPDATE reviews 
+             SET helpful = helpful + 1 
+             WHERE id = $1 
+             RETURNING helpful`,
+            [reviewId]
+        );
 
-        const review = hostel.reviews.id(reviewId);
-        if (!review) {
+        if (result.rowCount === 0) {
             return NextResponse.json({ error: 'Review not found' }, { status: 404 });
         }
 
-        review.helpful += 1;
-        await hostel.save();
-
-        return NextResponse.json({ success: true, helpfulCount: review.helpful });
+        return NextResponse.json({ success: true, helpfulCount: result.rows[0].helpful });
     } catch (error: any) {
+        console.error('Error marking review as helpful:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

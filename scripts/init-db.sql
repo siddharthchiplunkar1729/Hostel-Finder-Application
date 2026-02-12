@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     name TEXT NOT NULL,
     phone TEXT NOT NULL,
     can_access_dashboard BOOLEAN DEFAULT false,
+    is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -27,7 +28,10 @@ CREATE TABLE IF NOT EXISTS hostel_blocks (
     virtual_tour_url TEXT,
     images TEXT[], -- Array of image URLs
     facilities TEXT[],
+    latitude DECIMAL(9,6),
+    longitude DECIMAL(9,6),
     warden_user_id UUID REFERENCES users(id),
+    approval_status TEXT CHECK (approval_status IN ('Pending', 'Approved', 'Rejected')) DEFAULT 'Approved',
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -77,6 +81,24 @@ CREATE TABLE IF NOT EXISTS mess_menu (
     lunch TEXT,
     snacks TEXT,
     dinner TEXT,
+    breakfast_up INTEGER DEFAULT 0,
+    breakfast_down INTEGER DEFAULT 0,
+    lunch_up INTEGER DEFAULT 0,
+    lunch_down INTEGER DEFAULT 0,
+    snacks_up INTEGER DEFAULT 0,
+    snacks_down INTEGER DEFAULT 0,
+    dinner_up INTEGER DEFAULT 0,
+    dinner_down INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS hostel_comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    hostel_block_id UUID REFERENCES hostel_blocks(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_type TEXT,
+    comment_text TEXT NOT NULL,
+    parent_id UUID REFERENCES hostel_comments(id), -- For replies
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -117,4 +139,23 @@ CREATE TABLE IF NOT EXISTS communities (
     member_count INTEGER DEFAULT 0,
     image TEXT,
     created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS bookings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID REFERENCES students(id),
+    hostel_block_id UUID REFERENCES hostel_blocks(id),
+    check_in DATE,
+    check_out DATE,
+    status TEXT DEFAULT 'Confirmed',
+    amount DECIMAL(10,2),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS notice_acknowledgements (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    notice_id UUID REFERENCES notices(id) ON DELETE CASCADE,
+    student_id UUID REFERENCES students(id) ON DELETE CASCADE,
+    acknowledged_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(notice_id, student_id)
 );

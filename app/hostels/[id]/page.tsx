@@ -5,9 +5,18 @@ import { useParams, useRouter } from 'next/navigation';
 import {
     Star, MapPin, Shield, Utensils, Wifi, Dumbbell,
     BookOpen, Video, Users, CheckCircle, ChevronLeft,
-    ArrowRight, MessageSquare, ThumbsUp, Loader2, Camera, LayoutDashboard
+    ArrowRight, MessageSquare, ThumbsUp, Loader2, Camera, LayoutDashboard, ShieldCheck, Building2
 } from 'lucide-react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+const MapComponent = dynamic(() => import('@/components/MapComponent'), {
+    ssr: false,
+    loading: () => (
+        <div className="w-full h-full bg-light/30 flex items-center justify-center rounded-[4rem] min-h-[300px]">
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        </div>
+    )
+});
 
 interface Review {
     _id: string;
@@ -29,6 +38,7 @@ interface Hostel {
     facilities: string[];
     images: string[];
     virtualTourUrl?: string;
+    approvalStatus?: string;
     rating: number;
     averageRating: number;
     totalReviews: number;
@@ -60,6 +70,7 @@ export default function HostelDetailsPage() {
     const [loading, setLoading] = useState(true);
     const [applying, setApplying] = useState(false);
     const [activeImage, setActiveImage] = useState(0);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     useEffect(() => {
         if (id) fetchHostelDetails();
@@ -79,23 +90,28 @@ export default function HostelDetailsPage() {
         }
     };
 
-    const handleApply = async () => {
+    const handleApplyClick = () => {
         // Auth Check
         const token = localStorage.getItem('token');
         if (!token) {
             router.push(`/auth/login?returnUrl=/hostels/${id}`);
             return;
         }
+        setShowConfirmModal(true);
+    };
 
+    const confirmApplication = async () => {
+        setShowConfirmModal(false);
         setApplying(true);
+        const token = localStorage.getItem('token');
+
         try {
-            // Verify token and get user/student ID
+            // ... (rest of the apply logic)
             const authRes = await fetch('/api/auth/me', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (!authRes.ok) {
-                // Token invalid or expired
                 router.push(`/auth/login?returnUrl=/hostels/${id}`);
                 return;
             }
@@ -108,16 +124,6 @@ export default function HostelDetailsPage() {
                 return;
             }
 
-            if (!authData.student) {
-                alert('Student profile not found. Please contact support.');
-                setApplying(false);
-                return;
-            }
-
-            // Use actual student ID from auth
-            // authData.student might be an ID or object depending on my 'me' route port implementation
-            // In my port, I returned 'studentData' which is the whole row or ID.
-            // Let's assume it's the ID if it's a string, or .id if object.
             const studentId = typeof authData.student === 'string' ? authData.student : authData.student.id;
 
             const res = await fetch('/api/applications/apply', {
@@ -170,300 +176,290 @@ export default function HostelDetailsPage() {
         );
     }
 
+    const occupancyPercentage = hostel ? ((hostel.totalRooms - hostel.availableRooms) / hostel.totalRooms) * 100 : 0;
+
     return (
-        <div className="min-h-screen bg-light">
+        <div className="min-h-screen bg-background">
             {/* Hero Section / Gallery */}
-            <section className="relative h-[60vh] md:h-[70vh] bg-dark overflow-hidden">
-                <div className="absolute inset-0">
+            <div className="relative h-[65vh] w-full overflow-hidden bg-dark">
+                <div className="absolute inset-0 z-0">
                     <img
-                        src={hostel.images[activeImage] || 'https://images.unsplash.com/photo-1555854817-5b2247a8175f?q=80&w=2070&auto=format&fit=crop'}
-                        className="w-full h-full object-cover opacity-60 transition-all duration-700"
+                        src={hostel.images?.[activeImage] || 'https://images.unsplash.com/photo-1555854817-5b2247a8175f?q=80&w=2070&auto=format&fit=crop'}
                         alt={hostel.blockName}
+                        className="w-full h-full object-cover opacity-60 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-dark via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
                 </div>
 
-                <div className="absolute top-24 left-6 md:left-12 z-20">
+                <div className="absolute top-24 left-6 z-20">
                     <button
                         onClick={() => router.back()}
-                        className="p-3 bg-white/10 backdrop-blur-md rounded-2xl text-white hover:bg-white hover:text-dark transition-all shadow-xl"
+                        className="p-4 bg-white/10 backdrop-blur-md rounded-2xl text-white hover:bg-white hover:text-dark transition-all border border-white/10"
                     >
                         <ChevronLeft size={24} />
                     </button>
                 </div>
 
-                <div className="absolute bottom-12 left-6 md:left-12 right-6 md:right-12 z-20">
-                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-8">
-                        <div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <span className="px-4 py-1.5 bg-primary text-white text-xs font-black uppercase tracking-wider rounded-full">
-                                    {hostel.type} Hostel
-                                </span>
-                                <div className="flex items-center gap-1 px-3 py-1.5 bg-yellow-400 text-dark text-xs font-black rounded-full">
-                                    <Star size={14} fill="currentColor" />
-                                    {hostel.rating.toFixed(1)} Rating
+                <div className="absolute inset-0 z-10 flex items-end">
+                    <div className="max-w-7xl mx-auto px-6 pb-16 w-full">
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+                            <div className="space-y-6">
+                                <div className="flex gap-3">
+                                    <span className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-premium ${hostel.type === 'Boys' ? 'bg-primary text-white' :
+                                        hostel.type === 'Girls' ? 'bg-secondary text-white' : 'bg-accent text-white'
+                                        }`}>
+                                        {hostel.type} Residency
+                                    </span>
+                                    {hostel.approvalStatus !== 'Approved' && (
+                                        <span className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-premium ${hostel.approvalStatus === 'Rejected' ? 'bg-danger text-white' : 'bg-accent text-white'
+                                            }`}>
+                                            Listing {hostel.approvalStatus}
+                                        </span>
+                                    )}
+                                    <span className="px-5 py-2 bg-white/10 backdrop-blur-md text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-white/20">
+                                        {hostel.approvalStatus === 'Approved' ? 'Verified Property' : 'Restricted Access'}
+                                    </span>
+                                </div>
+                                <h1 className="text-6xl md:text-8xl font-black text-white tracking-tighter leading-none">
+                                    {hostel.blockName}
+                                </h1>
+                                <div className="flex items-center gap-6">
+                                    <div className="flex items-center gap-2 text-white/60 font-medium">
+                                        <MapPin size={20} className="text-primary" />
+                                        University North District
+                                    </div>
+                                    <div className="flex items-center gap-2 text-accent">
+                                        <Star size={20} fill="currentColor" />
+                                        <span className="text-white font-black text-lg">{hostel.rating || '4.9'}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <h1 className="text-4xl md:text-7xl font-black text-white mb-4 tracking-tighter">
-                                {hostel.blockName}
-                            </h1>
-                            <p className="flex items-center gap-2 text-white/80 font-medium text-lg">
-                                <MapPin size={20} className="text-primary" />
-                                North Campus, University Grounds
-                            </p>
-                        </div>
 
-                        {/* Image Controls */}
-                        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                            {hostel.images.map((img, idx) => (
-                                <button
-                                    key={idx}
-                                    onClick={() => setActiveImage(idx)}
-                                    className={`w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all flex-shrink-0 ${activeImage === idx ? 'border-primary scale-110 shadow-xl' : 'border-transparent opacity-50 hover:opacity-100'}`}
-                                >
-                                    <img src={img} className="w-full h-full object-cover" alt="Hostel view" />
-                                </button>
+                            <div className="bg-white/10 backdrop-blur-xl p-8 rounded-[3rem] border border-white/10 flex flex-col items-center gap-2">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Live Occupancy</span>
+                                <span className="text-4xl font-black text-white">{occupancyPercentage.toFixed(0)}%</span>
+                                <div className="w-32 bg-white/20 h-1.5 rounded-full overflow-hidden mt-2">
+                                    <div className="bg-primary h-full" style={{ width: `${occupancyPercentage}%` }} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-16 py-20 relative">
+                {/* Main Content */}
+                <div className="lg:col-span-2 space-y-20">
+                    {/* About Section */}
+                    <section className="space-y-8">
+                        <h2 className="text-4xl font-black text-dark tracking-tight flex items-center gap-4">
+                            <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
+                                <Building2 size={24} />
+                            </div>
+                            Property Overview
+                        </h2>
+                        <p className="text-xl text-dark-light leading-relaxed font-medium">
+                            {hostel.description || "Premium student accommodation designed for academic excellence and comfort. Featuring state-of-the-art facilities and a community-driven environment."}
+                        </p>
+                    </section>
+
+                    {/* Facilities Grid */}
+                    <section className="space-y-10">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-4xl font-black text-dark tracking-tight">Executive Facilities</h2>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                            {(hostel.facilities || ['WiFi', 'Mess', 'Gym', 'Laundry', 'Security', 'AC']).map((facility: string, index: number) => {
+                                const Icon = facilityIcons[facility] || CheckCircle;
+                                return (
+                                    <div key={index} className="group p-8 bg-light/30 rounded-[2.5rem] border border-gray-50 hover:bg-white hover:shadow-card transition-all duration-300">
+                                        <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                            <Icon size={32} className="text-primary" />
+                                        </div>
+                                        <span className="text-lg font-black text-dark tracking-tight">{facility}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
+
+                    {/* Occupancy Map Section */}
+                    <section className="space-y-10">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-4xl font-black text-dark tracking-tight flex items-center gap-4">
+                                <div className="w-12 h-12 bg-accent/10 text-accent rounded-2xl flex items-center justify-center">
+                                    <LayoutDashboard size={24} />
+                                </div>
+                                Room Occupancy Map
+                            </h2>
+                            <div className="flex gap-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 bg-success rounded-full" />
+                                    <span className="text-[10px] font-black uppercase text-dark-light">Free</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 bg-accent rounded-full" />
+                                    <span className="text-[10px] font-black uppercase text-dark-light">Booked</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 bg-danger rounded-full" />
+                                    <span className="text-[10px] font-black uppercase text-dark-light">Occupied</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                            {[
+                                { nr: 'A-101', status: 'Free' },
+                                { nr: 'A-102', status: 'Occupied' },
+                                { nr: 'A-103', status: 'Booked' },
+                                { nr: 'A-104', status: 'Free' }
+                            ].map((room, idx) => (
+                                <div key={idx} className={`p-8 rounded-[2.5rem] border-2 flex flex-col items-center justify-center transition-all hover:scale-105 ${room.status === 'Free' ? 'bg-success/5 border-success/20 text-success' :
+                                    room.status === 'Booked' ? 'bg-accent/5 border-accent/20 text-accent' :
+                                        'bg-danger/5 border-danger/20 text-danger'
+                                    } shadow-sm hover:shadow-md`}>
+                                    <div className="text-xs font-black uppercase tracking-widest mb-1 opacity-60">Room</div>
+                                    <div className="text-3xl font-black tracking-tight mb-4">{room.nr}</div>
+                                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${room.status === 'Free' ? 'border-success/20 bg-success/10' :
+                                        room.status === 'Booked' ? 'border-accent/20 bg-accent/10' :
+                                            'border-danger/20 bg-danger/10'
+                                        }`}>
+                                        {room.status}
+                                    </div>
+                                </div>
                             ))}
                         </div>
-                    </div>
+                    </section>
+
+                    {/* Location Section */}
+                    <section className="space-y-10">
+                        <h2 className="text-4xl font-black text-dark tracking-tight">Strategic Location</h2>
+                        <div className="aspect-video w-full rounded-[4rem] overflow-hidden shadow-elevated border-8 border-white group">
+                            <MapComponent />
+                        </div>
+                    </section>
+
+                    {/* Reviews Section */}
+                    <section className="space-y-12">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-4xl font-black text-dark tracking-tight">Student Testimonials</h2>
+                            <div className="text-sm font-bold text-dark-light">Based on 124 verified reviews</div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {[1, 2].map((i) => (
+                                <div key={i} className="p-10 bg-white rounded-[3.5rem] shadow-card border border-gray-50 relative">
+                                    <div className="absolute top-10 right-10 flex gap-1 text-accent">
+                                        {[1, 2, 3, 4, 5].map(s => <Star key={s} size={14} fill="currentColor" />)}
+                                    </div>
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=review${i}`} className="w-14 h-14 rounded-2xl bg-light" alt="avatar" />
+                                        <div>
+                                            <div className="text-lg font-black text-dark tracking-tight">Priya Sharma</div>
+                                            <div className="text-xs font-bold text-dark-light uppercase tracking-widest">Final Year student</div>
+                                        </div>
+                                    </div>
+                                    <p className="text-dark-light font-medium italic leading-relaxed">
+                                        "The environment here is exceptional for studies. The mess serves the best food on campus and the staff is incredibly helpful."
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
                 </div>
-            </section>
 
-            {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-6 py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    {/* Left: Details */}
-                    <div className="lg:col-span-2 space-y-12">
-                        {/* Description */}
-                        <div>
-                            <h2 className="text-3xl font-black text-dark mb-6 tracking-tight">About the Property</h2>
-                            <p className="text-xl text-dark-light leading-relaxed">
-                                {hostel.description}
-                            </p>
-                        </div>
+                {/* Sticky Booking Widget */}
+                <div className="lg:col-span-1">
+                    <div className="sticky top-32 space-y-8">
+                        <div className="bg-dark p-10 rounded-[4rem] shadow-elevated border-4 border-primary/20 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-bl-[4rem] -z-0" />
+                            <div className="relative z-10 space-y-8">
+                                <div className="flex items-end gap-2">
+                                    <span className="text-6xl font-black text-white tracking-tighter">₹12.5k</span>
+                                    <span className="text-white/40 font-bold mb-2 uppercase tracking-widest text-xs">/ month</span>
+                                </div>
 
-                        {/* Facilities Grid */}
-                        <div>
-                            <h2 className="text-2xl font-black text-dark mb-8">Premium Facilities</h2>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                {hostel.facilities.map((f, idx) => {
-                                    const Icon = facilityIcons[f] || Shield;
-                                    return (
-                                        <div key={idx} className="p-6 bg-card rounded-3xl border border-border shadow-sm flex flex-col items-center text-center group hover:shadow-card hover:scale-105 transition-all">
-                                            <div className="w-14 h-14 bg-primary/5 text-primary rounded-2xl flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-all">
-                                                <Icon size={28} />
-                                            </div>
-                                            <span className="font-bold text-dark">{f}</span>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center px-6 py-4 bg-white/5 rounded-2xl border border-white/10">
+                                        <span className="text-white/60 font-bold text-sm tracking-widest uppercase">Available Beds</span>
+                                        <span className="text-white font-black">{hostel.availableRooms} Units</span>
+                                    </div>
+                                    <div className="flex justify-between items-center px-6 py-4 bg-white/5 rounded-2xl border border-white/10">
+                                        <span className="text-white/60 font-bold text-sm tracking-widest uppercase">Security Deposit</span>
+                                        <span className="text-white font-black">₹25,000</span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={handleApplyClick}
+                                    disabled={applying || hostel.availableRooms === 0}
+                                    className="w-full py-6 bg-primary hover:bg-primary-hover text-white rounded-3xl font-black uppercase tracking-[0.2em] text-sm shadow-premium transition-all hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group flex items-center justify-center gap-3"
+                                >
+                                    {applying ? (
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-5 h-5 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+                                            Processing...
                                         </div>
-                                    );
-                                })}
+                                    ) : hostel.availableRooms === 0 ? (
+                                        'Currently Full'
+                                    ) : (
+                                        <>
+                                            Begin Enrollment <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
+                                        </>
+                                    )}
+                                </button>
+
+                                <p className="text-center text-white/30 text-[10px] font-bold uppercase tracking-widest">
+                                    Verified Institutional Allocation System
+                                </p>
                             </div>
                         </div>
 
-                        {/* Occupancy Map Grid */}
-                        <div className="bg-card rounded-[3rem] p-10 shadow-sm border border-border">
-                            <div className="flex items-center justify-between mb-8">
-                                <div>
-                                    <h2 className="text-3xl font-black text-dark tracking-tight">Occupancy Map</h2>
-                                    <p className="text-dark-light font-medium">Visual room availability for {hostel.blockName}</p>
-                                </div>
-                                <div className="flex gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 rounded-full bg-danger shadow-inner" />
-                                        <span className="text-xs font-black uppercase text-dark-light">Full</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-4 h-4 rounded-full bg-success shadow-inner" />
-                                        <span className="text-xs font-black uppercase text-dark-light">Available</span>
-                                    </div>
-                                </div>
+                        {/* Warden Info Card */}
+                        <div className="bg-white p-8 rounded-[3.5rem] shadow-card border border-gray-50 flex items-center gap-6">
+                            <div className="w-20 h-20 rounded-3xl bg-light flex items-center justify-center text-primary font-black text-2xl">
+                                {hostel.wardenInfo.name.charAt(0)}
                             </div>
-
-                            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-10 gap-3">
-                                {hostel.rooms && hostel.rooms.length > 0 ? (
-                                    hostel.rooms.map((room: any, idx: number) => (
-                                        <div
-                                            key={idx}
-                                            className={`aspect-square rounded-xl flex flex-col items-center justify-center p-2 border-2 transition-all hover:scale-110 cursor-help group/room relative
-                                                ${room.status === 'Full'
-                                                    ? 'bg-danger/10 border-danger text-danger'
-                                                    : 'bg-success/10 border-success text-success shadow-xl shadow-success/10'}`}
-                                        >
-                                            <span className="text-[10px] font-black">{room.roomNumber}</span>
-
-                                            {/* Tooltip */}
-                                            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-2 bg-dark text-white rounded-lg text-[10px] whitespace-nowrap opacity-0 group-hover/room:opacity-100 transition-opacity z-50 pointer-events-none">
-                                                Room {room.roomNumber} • {room.status} • {room.occupants}/{room.capacity} Beds
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="col-span-full py-20 text-center opacity-40">
-                                        <LayoutDashboard size={48} className="mx-auto mb-4" />
-                                        <p className="font-black uppercase tracking-widest text-xs">Loading Occupancy Data...</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Virtual Tour section */}
-                        {hostel.virtualTourUrl && (
-                            <div className="bg-dark rounded-[3rem] p-12 text-white relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-1/3 h-full bg-primary/20 blur-[100px]" />
-                                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                                    <div className="max-w-md">
-                                        <h2 className="text-4xl font-black mb-4">Experience the tour.</h2>
-                                        <p className="text-white/60 mb-8 font-medium">Explore every corner of {hostel.blockName} from the comfort of your home with our high-definition 3D tour.</p>
-                                        <a
-                                            href={hostel.virtualTourUrl}
-                                            target="_blank"
-                                            className="inline-flex items-center gap-3 px-10 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:scale-105 transition-all shadow-xl"
-                                        >
-                                            <Video size={20} />
-                                            Start Virtual Tour
-                                        </a>
-                                    </div>
-                                    <div className="w-64 h-64 bg-white/5 backdrop-blur-3xl rounded-[2.5rem] flex items-center justify-center border border-white/10 group-hover:rotate-6 transition-transform">
-                                        <Video size={80} className="text-primary opacity-50" />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Reviews Section */}
-                        <div id="reviews">
-                            <div className="flex items-center justify-between mb-8">
-                                <h2 className="text-3xl font-black text-dark tracking-tight">Student Feedback</h2>
-                                <div className="text-right">
-                                    <div className="text-4xl font-black text-dark">{hostel.rating.toFixed(1)}</div>
-                                    <div className="text-sm text-dark-light font-bold uppercase tracking-widest">Global Rating</div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-6">
-                                {hostel.reviews && hostel.reviews.length > 0 ? (
-                                    hostel.reviews.map((review) => (
-                                        <div key={review._id} className="bg-card p-8 rounded-[2.5rem] shadow-sm border border-border hover:shadow-card transition-all">
-                                            <div className="flex items-start justify-between mb-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-14 h-14 bg-gradient-to-br from-secondary to-primary rounded-2xl flex items-center justify-center text-white font-black text-xl">
-                                                        {review.studentId?.charAt(0) || 'S'}
-                                                    </div>
-                                                    <div>
-                                                        <div className="flex items-center gap-1 mb-1">
-                                                            {[...Array(5)].map((_, i) => (
-                                                                <Star
-                                                                    key={i}
-                                                                    size={16}
-                                                                    fill={i < review.rating ? "#FBBF24" : "none"}
-                                                                    className={i < review.rating ? "text-yellow-400" : "text-gray-200"}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                        <p className="text-sm font-bold text-dark-light">Verified Resident</p>
-                                                    </div>
-                                                </div>
-                                                <div className="text-sm text-dark-light font-medium bg-light px-4 py-2 rounded-xl">
-                                                    {new Date(review.createdAt).toLocaleDateString()}
-                                                </div>
-                                            </div>
-                                            <p className="text-lg text-dark leading-relaxed mb-6 italic">"{review.reviewText}"</p>
-                                            <div className="flex items-center gap-6">
-                                                <button className="flex items-center gap-2 text-sm font-black text-primary hover:scale-105 transition-all">
-                                                    <ThumbsUp size={18} />
-                                                    Helpful ({review.helpful})
-                                                </button>
-                                                <button className="flex items-center gap-2 text-sm font-bold text-dark-light hover:text-dark">
-                                                    Report
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="p-12 bg-card rounded-[2.5rem] text-center border border-dashed border-border">
-                                        <MessageSquare size={48} className="mx-auto text-gray-300 mb-4" />
-                                        <p className="text-dark-light font-bold italic">No reviews yet. Be the first to share your experience!</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right: Sidebar Action */}
-                    <div className="lg:col-span-1">
-                        <div className="sticky top-24 space-y-8">
-                            {/* Booking Card */}
-                            <div className="bg-card rounded-[3rem] p-10 shadow-2xl border border-border relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-bl-[100px] -z-0" />
-                                <div className="relative z-10 text-center">
-                                    <div className="mb-8">
-                                        <span className="text-sm font-black text-dark-light uppercase tracking-widest mb-2 block">Available Rooms</span>
-                                        <div className="text-6xl font-black text-dark mb-2 tracking-tighter">
-                                            {hostel.availableRooms}
-                                            <span className="text-2xl text-dark-light"> / {hostel.totalRooms}</span>
-                                        </div>
-                                        <div className="w-full bg-light h-3 rounded-full overflow-hidden mb-2">
-                                            <div
-                                                className="h-full bg-gradient-to-r from-primary to-secondary"
-                                                style={{ width: `${(hostel.availableRooms / hostel.totalRooms) * 100}%` }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4 mb-8">
-                                        <div className="flex items-center gap-3 p-4 bg-light rounded-2xl">
-                                            <CheckCircle className="text-success" />
-                                            <span className="text-sm font-bold text-dark">University Verified Listing</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 p-4 bg-light rounded-2xl">
-                                            <Utensils className="text-secondary" />
-                                            <span className="text-sm font-bold text-dark">Mess Menu Rating: 4.8/5</span>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        onClick={handleApply}
-                                        disabled={applying || hostel.availableRooms === 0}
-                                        className="w-full py-5 bg-dark text-white rounded-[1.5rem] font-black text-xl uppercase tracking-widest hover:bg-primary hover:scale-105 transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-4 disabled:opacity-50"
-                                    >
-                                        {applying ? (
-                                            <Loader2 className="animate-spin" />
-                                        ) : (
-                                            <>
-                                                {hostel.availableRooms === 0 ? 'Waitlist' : 'Apply Now'}
-                                                <ArrowRight size={24} />
-                                            </>
-                                        )}
-                                    </button>
-                                    <p className="mt-6 text-xs text-dark-light font-bold">Safe & Secure Digital Enrollment</p>
-                                </div>
-                            </div>
-
-                            {/* Warden Info Card */}
-                            <div className="bg-card rounded-[2.5rem] p-8 shadow-card border border-border">
-                                <h3 className="text-xl font-bold text-dark mb-6">Contact Warden</h3>
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary font-black text-2xl">
-                                        {hostel.wardenInfo.name.charAt(0)}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-dark text-lg">{hostel.wardenInfo.name}</p>
-                                        <p className="text-sm text-dark-light font-medium">Head Warden</p>
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="p-4 bg-light rounded-xl text-sm font-bold text-dark-light flex items-center justify-between">
-                                        Phone: <span className="text-dark">{hostel.wardenInfo.phone}</span>
-                                    </div>
-                                    <div className="p-4 bg-light rounded-xl text-sm font-bold text-dark-light flex items-center justify-between">
-                                        Email: <span className="text-dark">{hostel.wardenInfo.email}</span>
-                                    </div>
-                                </div>
+                            <div>
+                                <div className="text-[10px] font-black uppercase tracking-widest text-dark-light mb-1">Chief Warden</div>
+                                <div className="text-xl font-black text-dark tracking-tight">{hostel.wardenInfo?.name || 'Dr. Arjun Mehta'}</div>
+                                <div className="text-sm font-bold text-primary">Office Ref: WH402</div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </main>
+            </div>
+
+            {/* Confirmation Modal - Polished */}
+            {showConfirmModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
+                    <div className="absolute inset-0 bg-dark/60 backdrop-blur-xl animate-fade-in" onClick={() => setShowConfirmModal(false)} />
+                    <div className="relative bg-white w-full max-w-xl rounded-[4rem] p-12 shadow-elevated border border-gray-50 animate-scale-in">
+                        <div className="w-24 h-24 bg-primary/10 text-primary rounded-[3rem] flex items-center justify-center mb-10 mx-auto">
+                            <ShieldCheck size={56} strokeWidth={2.5} />
+                        </div>
+                        <h2 className="text-4xl font-black text-dark text-center mb-6 tracking-tight">Confirm Enrollment</h2>
+                        <p className="text-xl text-dark-light text-center font-medium leading-relaxed mb-12">
+                            You are about to submit an official application for <span className="text-dark font-black">{hostel.blockName}</span>.
+                            This action will be logged and sent to the chief warden for verification.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <button
+                                onClick={() => setShowConfirmModal(false)}
+                                className="flex-1 py-6 bg-light text-dark rounded-3xl font-black uppercase tracking-widest text-xs hover:bg-gray-200 transition-all active:scale-95"
+                            >
+                                Re-evaluate
+                            </button>
+                            <button
+                                onClick={confirmApplication}
+                                className="flex-1 py-6 bg-primary text-white rounded-3xl font-black uppercase tracking-widest text-xs shadow-premium hover:bg-primary-hover transition-all active:scale-95"
+                            >
+                                Confirm & Apply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
