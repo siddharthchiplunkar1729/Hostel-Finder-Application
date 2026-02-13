@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { DEFAULT_HOSTEL_IMAGE, normalizeHostelImages } from '@/lib/hostelImages';
 const MapComponent = dynamic(() => import('@/components/MapComponent'), {
     ssr: false,
     loading: () => (
@@ -176,6 +177,8 @@ export default function HostelDetailsPage() {
         );
     }
 
+    const hostelImages = normalizeHostelImages(hostel.images);
+    const heroImage = hostelImages[activeImage] || hostelImages[0] || DEFAULT_HOSTEL_IMAGE;
     const occupancyPercentage = hostel ? ((hostel.totalRooms - hostel.availableRooms) / hostel.totalRooms) * 100 : 0;
 
     return (
@@ -184,9 +187,15 @@ export default function HostelDetailsPage() {
             <div className="relative h-[65vh] w-full overflow-hidden bg-dark">
                 <div className="absolute inset-0 z-0">
                     <img
-                        src={hostel.images?.[activeImage] || 'https://images.unsplash.com/photo-1555854817-5b2247a8175f?q=80&w=2070&auto=format&fit=crop'}
+                        src={heroImage}
                         alt={hostel.blockName}
                         className="w-full h-full object-cover opacity-60 transition-transform duration-700"
+                        onError={(event) => {
+                            const img = event.currentTarget;
+                            if (img.src !== DEFAULT_HOSTEL_IMAGE) {
+                                img.src = DEFAULT_HOSTEL_IMAGE;
+                            }
+                        }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
                 </div>
@@ -340,32 +349,34 @@ export default function HostelDetailsPage() {
                     </section>
 
                     {/* Reviews Section */}
-                    <section className="space-y-12">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-4xl font-black text-dark tracking-tight">Student Testimonials</h2>
-                            <div className="text-sm font-bold text-dark-light">Based on 124 verified reviews</div>
-                        </div>
+                    {hostel.approvalStatus === 'Approved' && (
+                        <section className="space-y-12">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-4xl font-black text-dark tracking-tight">Student Testimonials</h2>
+                                <div className="text-sm font-bold text-dark-light">Based on 124 verified reviews</div>
+                            </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {[1, 2].map((i) => (
-                                <div key={i} className="p-10 bg-white rounded-[3.5rem] shadow-card border border-gray-50 relative">
-                                    <div className="absolute top-10 right-10 flex gap-1 text-accent">
-                                        {[1, 2, 3, 4, 5].map(s => <Star key={s} size={14} fill="currentColor" />)}
-                                    </div>
-                                    <div className="flex items-center gap-4 mb-8">
-                                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=review${i}`} className="w-14 h-14 rounded-2xl bg-light" alt="avatar" />
-                                        <div>
-                                            <div className="text-lg font-black text-dark tracking-tight">Priya Sharma</div>
-                                            <div className="text-xs font-bold text-dark-light uppercase tracking-widest">Final Year student</div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {[1, 2].map((i) => (
+                                    <div key={i} className="p-10 bg-white rounded-[3.5rem] shadow-card border border-gray-50 relative">
+                                        <div className="absolute top-10 right-10 flex gap-1 text-accent">
+                                            {[1, 2, 3, 4, 5].map(s => <Star key={s} size={14} fill="currentColor" />)}
                                         </div>
+                                        <div className="flex items-center gap-4 mb-8">
+                                            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=review${i}`} className="w-14 h-14 rounded-2xl bg-light" alt="avatar" />
+                                            <div>
+                                                <div className="text-lg font-black text-dark tracking-tight">Priya Sharma</div>
+                                                <div className="text-xs font-bold text-dark-light uppercase tracking-widest">Final Year student</div>
+                                            </div>
+                                        </div>
+                                        <p className="text-dark-light font-medium italic leading-relaxed">
+                                            "The environment here is exceptional for studies. The mess serves the best food on campus and the staff is incredibly helpful."
+                                        </p>
                                     </div>
-                                    <p className="text-dark-light font-medium italic leading-relaxed">
-                                        "The environment here is exceptional for studies. The mess serves the best food on campus and the staff is incredibly helpful."
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
+                                ))}
+                            </div>
+                        </section>
+                    )}
                 </div>
 
                 {/* Sticky Booking Widget */}

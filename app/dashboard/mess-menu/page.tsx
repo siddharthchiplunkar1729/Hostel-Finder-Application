@@ -34,7 +34,7 @@ export default function MessMenuPage() {
             const res = await fetch('/api/mess-menu/week');
             if (res.ok) {
                 const data = await res.json();
-                setMenus(data);
+                setMenus(data.menus || []);
             }
         } catch (error) {
             console.error('Error fetching mess menu:', error);

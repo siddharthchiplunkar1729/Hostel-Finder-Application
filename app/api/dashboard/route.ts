@@ -21,7 +21,7 @@ export const GET = withStudent(async (request: AuthenticatedRequest) => {
         const [studentRes, complaintsRes, noticesRes, menuRes] = await Promise.all([
             // 1. Student Info
             pool.query(`
-                SELECT s.*, u.name, u.email, hb.block_name 
+                SELECT s.*, u.name, u.email, u.can_access_dashboard, hb.block_name 
                 FROM students s 
                 JOIN users u ON s.user_id = u.id 
                 LEFT JOIN hostel_blocks hb ON s.hostel_block_id = hb.id 
@@ -66,8 +66,11 @@ export const GET = withStudent(async (request: AuthenticatedRequest) => {
             roomNumber: student.room_number,
             course: student.course,
             year: student.year,
+            enrollmentStatus: student.enrollment_status,
+            canAccessDashboard: student.can_access_dashboard,
             feeStatus: {
-                isPaid: student.enrollment_status === 'Active',
+                // If dashboard access has already been granted, treat enrollment as approved.
+                isPaid: student.enrollment_status === 'Active' || student.can_access_dashboard === true,
                 lastPayment: student.updated_at
             }
         } : null;
@@ -86,6 +89,11 @@ export const GET = withStudent(async (request: AuthenticatedRequest) => {
             title: n.title,
             content: n.content,
             priority: n.priority,
+            type: n.priority === 'Urgent' ? 'Emergency' : n.priority === 'High' ? 'Important' : 'General',
+            from: {
+                role: 'Administrative Officer',
+                name: n.block_name || 'Hostel Hub System'
+            },
             createdAt: n.created_at,
             hostelName: n.block_name
         }));
@@ -94,12 +102,42 @@ export const GET = withStudent(async (request: AuthenticatedRequest) => {
         const menu = menuRes.rows[0];
         const mappedMenu = menu ? {
             _id: menu.id,
+            date: new Date().toISOString(),
             day: menu.day,
+            specialMenu: false,
             meals: [
-                { mealType: 'Breakfast', items: menu.breakfast?.split(',') || [], timings: '07:30 AM - 09:30 AM' },
-                { mealType: 'Lunch', items: menu.lunch?.split(',') || [], timings: '12:30 PM - 02:30 PM' },
-                { mealType: 'Snacks', items: menu.snacks?.split(',') || [], timings: '04:30 PM - 05:30 PM' },
-                { mealType: 'Dinner', items: menu.dinner?.split(',') || [], timings: '07:30 PM - 09:30 PM' }
+                {
+                    mealType: 'Breakfast',
+                    items: menu.breakfast?.split(',').map((i: string) => i.trim()).filter(Boolean) || [],
+                    timings: '07:30 AM - 09:30 AM',
+                    isVeg: true,
+                    thumbsUp: menu.breakfast_up || 0,
+                    thumbsDown: menu.breakfast_down || 0
+                },
+                {
+                    mealType: 'Lunch',
+                    items: menu.lunch?.split(',').map((i: string) => i.trim()).filter(Boolean) || [],
+                    timings: '12:30 PM - 02:30 PM',
+                    isVeg: true,
+                    thumbsUp: menu.lunch_up || 0,
+                    thumbsDown: menu.lunch_down || 0
+                },
+                {
+                    mealType: 'Snacks',
+                    items: menu.snacks?.split(',').map((i: string) => i.trim()).filter(Boolean) || [],
+                    timings: '04:30 PM - 05:30 PM',
+                    isVeg: true,
+                    thumbsUp: menu.snacks_up || 0,
+                    thumbsDown: menu.snacks_down || 0
+                },
+                {
+                    mealType: 'Dinner',
+                    items: menu.dinner?.split(',').map((i: string) => i.trim()).filter(Boolean) || [],
+                    timings: '07:30 PM - 09:30 PM',
+                    isVeg: true,
+                    thumbsUp: menu.dinner_up || 0,
+                    thumbsDown: menu.dinner_down || 0
+                }
             ]
         } : null;
 

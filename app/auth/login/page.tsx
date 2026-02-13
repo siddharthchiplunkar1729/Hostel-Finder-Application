@@ -13,7 +13,11 @@ function LoginContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const returnUrl = searchParams.get('returnUrl');
-    const requestedRole = searchParams.get('role');
+
+    const getSafeRedirectPath = (url: string | null): string | null => {
+        if (!url) return null;
+        return url.startsWith('/') && !url.startsWith('//') ? url : null;
+    };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,27 +38,35 @@ function LoginContent() {
             }
 
             // Store tokens and user info (simplified for demo)
+            const studentId = typeof data.student === 'string'
+                ? data.student
+                : data.student?.id || null;
+
             localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('user', JSON.stringify({
+                ...data.user,
+                studentId,
+            }));
 
             // Role-based redirection
             const role = data.user.role;
-            if (returnUrl) {
-                window.location.href = returnUrl;
+            const safeReturnUrl = getSafeRedirectPath(returnUrl);
+            if (safeReturnUrl) {
+                router.replace(safeReturnUrl);
             } else if (role === 'Admin') {
-                window.location.href = '/admin';
+                router.replace('/admin');
             } else if (role === 'Warden') {
-                window.location.href = '/warden';
+                router.replace('/warden');
             } else {
                 // Students only get dashboard access if approved
                 if (data.user.canAccessDashboard) {
-                    window.location.href = '/dashboard';
+                    router.replace('/dashboard');
                 } else {
-                    window.location.href = '/search';
+                    router.replace('/search');
                 }
             }
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Login failed');
         } finally {
             setLoading(false);
         }

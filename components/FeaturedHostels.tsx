@@ -2,6 +2,7 @@ import React from 'react';
 import pool from '@/lib/db';
 import { Star, MapPin, Users, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { getPrimaryHostelImage } from '@/lib/hostelImages';
 
 export default async function FeaturedHostels() {
     let hostels = [];
@@ -72,7 +73,7 @@ export default async function FeaturedHostels() {
                     <div className="relative h-64 overflow-hidden">
                         <div className="absolute inset-0 bg-dark/20 group-hover:bg-dark/0 transition-colors z-10" />
                         <img
-                            src={hostel.images?.[0] || 'https://images.unsplash.com/photo-1555854817-5b2260d37cbb?auto=format&fit=crop&q=80&w=800'}
+                            src={getPrimaryHostelImage(hostel.images)}
                             alt={hostel.blockName}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />

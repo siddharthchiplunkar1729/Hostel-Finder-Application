@@ -11,7 +11,7 @@ function SearchContent() {
 
     const [hostelBlocks, setHostelBlocks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+    const [selectedType, setSelectedType] = useState<string>('');
     const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -21,7 +21,7 @@ function SearchContent() {
             try {
                 const params = new URLSearchParams();
                 if (locationQuery) params.append('location', locationQuery);
-                if (selectedTypes.length > 0) params.append('types', selectedTypes.join(','));
+                if (selectedType) params.append('types', selectedType);
                 if (selectedFacilities.length > 0) params.append('facilities', selectedFacilities.join(','));
 
                 const res = await fetch(`/api/hostel-blocks?${params.toString()}`);
@@ -40,14 +40,10 @@ function SearchContent() {
             }
         }
         fetchHostelBlocks();
-    }, [locationQuery, selectedTypes, selectedFacilities]);
+    }, [locationQuery, selectedType, selectedFacilities]);
 
     const handleTypeChange = (type: string) => {
-        setSelectedTypes(prev =>
-            prev.includes(type)
-                ? prev.filter(t => t !== type)
-                : [...prev, type]
-        );
+        setSelectedType(prev => (prev === type ? '' : type));
     };
 
     const handleFacilityChange = (facility: string) => {
@@ -108,16 +104,16 @@ function SearchContent() {
                                     <div className="space-y-4">
                                         {['Boys', 'Girls', 'Co-ed'].map(type => (
                                             <label key={type} className="flex items-center gap-4 cursor-pointer group">
-                                                <div className={`w-6 h-6 rounded-xl border-4 flex items-center justify-center transition-all ${selectedTypes.includes(type) ? 'bg-primary border-primary/20 scale-110 shadow-premium' : 'bg-light border-transparent group-hover:border-primary/10'}`}>
-                                                    {selectedTypes.includes(type) && <div className="w-2 h-2 bg-white rounded-full" />}
+                                                <div className={`w-6 h-6 rounded-xl border-4 flex items-center justify-center transition-all ${selectedType === type ? 'bg-primary border-primary/20 scale-110 shadow-premium' : 'bg-light border-transparent group-hover:border-primary/10'}`}>
+                                                    {selectedType === type && <div className="w-2 h-2 bg-white rounded-full" />}
                                                 </div>
                                                 <input
-                                                    type="checkbox"
+                                                    type="radio"
                                                     className="hidden"
-                                                    checked={selectedTypes.includes(type)}
+                                                    checked={selectedType === type}
                                                     onChange={() => handleTypeChange(type)}
                                                 />
-                                                <span className={`text-sm font-black uppercase tracking-widest transition-colors ${selectedTypes.includes(type) ? 'text-primary' : 'text-dark-light group-hover:text-dark'}`}>
+                                                <span className={`text-sm font-black uppercase tracking-widest transition-colors ${selectedType === type ? 'text-primary' : 'text-dark-light group-hover:text-dark'}`}>
                                                     {type}
                                                 </span>
                                             </label>
@@ -151,10 +147,10 @@ function SearchContent() {
                                 </div>
 
                                 {/* Clear Filters */}
-                                {(selectedTypes.length > 0 || selectedFacilities.length > 0) && (
+                                {(selectedType || selectedFacilities.length > 0) && (
                                     <button
                                         onClick={() => {
-                                            setSelectedTypes([]);
+                                            setSelectedType('');
                                             setSelectedFacilities([]);
                                         }}
                                         className="w-full py-4 bg-light text-dark text-[10px] font-black uppercase tracking-[0.2em] rounded-[2rem] hover:bg-danger hover:text-white transition-all shadow-inner"
@@ -191,7 +187,7 @@ function SearchContent() {
                                 </p>
                                 <button
                                     onClick={() => {
-                                        setSelectedTypes([]);
+                                        setSelectedType('');
                                         setSelectedFacilities([]);
                                     }}
                                     className="px-10 py-5 bg-primary text-white rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-premium hover:shadow-elevated transition-all active:scale-95"

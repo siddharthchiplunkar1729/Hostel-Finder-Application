@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText, AlertTriangle, Utensils, QrCode, CreditCard, Phone, Star } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface QuickActionsCardProps {
     onSubmitComplaint: () => void;
@@ -66,28 +67,30 @@ const ACTIONS = [
 ];
 
 export default function QuickActionsCard({ onSubmitComplaint }: QuickActionsCardProps) {
+    const router = useRouter();
+
     const handleAction = (action: string) => {
         switch (action) {
             case 'complaint':
                 onSubmitComplaint();
                 break;
             case 'menu':
-                window.location.href = '/dashboard/mess-menu';
+                router.push('/dashboard/mess-menu');
                 break;
             case 'attendance':
                 alert('Advanced Identity Sync coming soon.');
                 break;
             case 'fee':
-                window.location.href = '/fee-payment';
+                router.push('/fee-payment');
                 break;
             case 'notices':
-                window.location.href = '/dashboard/notices';
+                router.push('/dashboard/notices');
                 break;
             case 'sos':
                 alert('Emergency protocol initiated. Wardens notified.');
                 break;
             case 'review':
-                window.location.href = '/dashboard/reviews';
+                router.push('/dashboard/reviews');
                 break;
         }
     };

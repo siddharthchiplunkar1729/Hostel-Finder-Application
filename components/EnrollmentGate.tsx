@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { ShieldAlert, Home, Search, Loader2, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { getAuthHeaders, getAuthToken } from '@/lib/clientAuth';
 
 interface User {
     role: string;
@@ -18,7 +19,7 @@ export default function EnrollmentGate({ children }: { children: React.ReactNode
 
     useEffect(() => {
         const fetchUser = async () => {
-            const token = localStorage.getItem('token');
+            const token = getAuthToken();
             if (!token) {
                 setLoading(false);
                 router.push('/auth/login');
@@ -103,7 +104,10 @@ export default function EnrollmentGate({ children }: { children: React.ReactNode
                             <button
                                 onClick={async () => {
                                     try {
-                                        const res = await fetch(`/api/students/${(user as any)._id || (user as any).studentId}/pay`, { method: 'POST' });
+                                        const res = await fetch(
+                                            `/api/students/${(user as any)._id || (user as any).studentId}/pay`,
+                                            { method: 'POST', headers: getAuthHeaders() }
+                                        );
                                         if (res.ok) {
                                             window.location.reload();
                                         }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { User, Shield, MapPin, Phone, Mail, Award, CheckCircle, Download, Share2, QrCode, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { getAuthHeaders, getStoredUser } from '@/lib/clientAuth';
 
 export default function StudentProfilePage() {
     const [user, setUser] = useState<any>(null);
@@ -12,9 +13,8 @@ export default function StudentProfilePage() {
     const router = useRouter();
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            const userData = JSON.parse(storedUser);
+        const userData = getStoredUser();
+        if (userData) {
 
             // Access protection
             if (userData.role === 'Student' && !userData.canAccessDashboard) {
@@ -23,7 +23,11 @@ export default function StudentProfilePage() {
             }
 
             setUser(userData);
-            fetchStudentDetails(userData.studentId);
+            if (userData.studentId) {
+                fetchStudentDetails(userData.studentId);
+                return;
+            }
+            setLoading(false);
         } else {
             router.push('/auth/login');
         }
@@ -31,7 +35,7 @@ export default function StudentProfilePage() {
 
     const fetchStudentDetails = async (studentId: string) => {
         try {
-            const res = await fetch(`/api/students/${studentId}`);
+            const res = await fetch(`/api/students/${studentId}`, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
                 setStudent(data);
@@ -85,7 +89,7 @@ export default function StudentProfilePage() {
                                             </div>
                                             <div className="flex justify-between text-xs font-medium">
                                                 <span className="opacity-60 uppercase tracking-widest">Enrolled Block</span>
-                                                <span className="font-black">{student?.hostelBlockId?.blockName || 'A Block'} - Room {student?.roomNumber || 'TBD'}</span>
+                                                <span className="font-black">{student?.hostelInfo?.name || 'A Block'} - Room {student?.roomNumber || 'TBD'}</span>
                                             </div>
                                             <div className="flex justify-between text-xs font-medium">
                                                 <span className="opacity-60 uppercase tracking-widest">Emergency</span>

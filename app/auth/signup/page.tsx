@@ -39,19 +39,26 @@ function SignupForm() {
             }
 
             // Store tokens and user info
+            const studentId = typeof data.student === 'string'
+                ? data.student
+                : data.student?.id || null;
+
             localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('user', JSON.stringify({
+                ...data.user,
+                studentId
+            }));
 
             // Role-based redirection
             if (data.user.role === 'Admin') {
-                router.push('/admin');
+                router.replace('/admin');
             } else if (data.user.role === 'Warden') {
-                router.push('/warden');
+                router.replace('/warden');
             } else {
-                router.push('/search');
+                router.replace('/search');
             }
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Signup failed');
         } finally {
             setLoading(false);
         }

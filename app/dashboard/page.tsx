@@ -63,14 +63,16 @@ export default function DashboardPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-light pt-24 flex items-center justify-center">
+            <div className="min-h-screen bg-background pt-24 flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                    <p className="text-dark-light font-medium">Loading your dashboard...</p>
+                    <p className="text-muted-foreground font-medium">Loading your dashboard...</p>
                 </div>
             </div>
         );
     }
+
+    const isEnrollmentApproved = Boolean(student?.feeStatus?.isPaid || student?.canAccessDashboard);
 
     return (
         <div className="min-h-screen bg-background transition-colors duration-500 pt-32 pb-12 px-6">
@@ -89,7 +91,7 @@ export default function DashboardPage() {
                                 <h1 className="text-5xl font-black text-white tracking-tighter mb-2">
                                     Welcome back{student?.name ? `, ${student.name.split(' ')[0]}` : ''}.
                                 </h1>
-                                <div className="flex flex-wrap gap-6 text-white/40 font-bold uppercase tracking-widest text-[10px]">
+                                <div className="flex flex-wrap gap-6 text-white/70 font-bold uppercase tracking-widest text-[10px]">
                                     <div className="flex items-center gap-2">
                                         <Building2 size={14} className="text-primary" />
                                         <span>Suite {student?.roomNumber || 'PENDING'}</span>
@@ -107,14 +109,19 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="flex flex-col items-center gap-4">
-                            <div className={`px-8 py-4 rounded-[2rem] border-2 backdrop-blur-md shadow-premium transition-all ${student?.feeStatus?.isPaid
+                            <div className={`px-8 py-4 rounded-[2rem] border-2 backdrop-blur-md shadow-premium transition-all ${isEnrollmentApproved
                                 ? 'bg-success/10 border-success/20 text-success'
                                 : 'bg-accent/10 border-accent/20 text-accent animate-pulse'
                                 }`}>
                                 <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-1 opacity-60">Hostel Enrollment</div>
                                 <div className="text-xl font-black">
-                                    {student?.feeStatus?.isPaid ? 'Approved' : 'Action Required'}
+                                    {isEnrollmentApproved ? 'Approved' : 'Action Required'}
                                 </div>
+                                {!isEnrollmentApproved && (
+                                    <div className="text-[10px] font-bold uppercase tracking-widest mt-1 opacity-80">
+                                        Complete fee payment and warden review
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -134,7 +141,7 @@ export default function DashboardPage() {
                             {/* Incident Management */}
                             <section className="space-y-8">
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-3xl font-black text-dark tracking-tight">Support Tickets</h2>
+                                    <h2 className="text-3xl font-black text-foreground tracking-tight">Support Tickets</h2>
                                     <Link href="/complaints" className="text-[10px] font-black uppercase tracking-widest text-primary hover:tracking-[0.2em] transition-all">
                                         Audit History →
                                     </Link>
@@ -158,7 +165,7 @@ export default function DashboardPage() {
 
                             {/* Community Interaction */}
                             <section className="space-y-8">
-                                <h2 className="text-3xl font-black text-dark tracking-tight">Network</h2>
+                                <h2 className="text-3xl font-black text-foreground tracking-tight">Network</h2>
                                 <div className="bg-card rounded-[3rem] p-10 shadow-card border border-white/5 group overflow-hidden relative">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-bl-[4rem] group-hover:scale-150 transition-transform duration-700" />
                                     <div className="relative z-10 flex items-center gap-8">
@@ -195,11 +202,11 @@ export default function DashboardPage() {
                     <aside className="space-y-12">
                         {/* Culinary Intelligence */}
                         <section className="space-y-8">
-                            <h2 className="text-3xl font-black text-dark tracking-tight">Today's Menu</h2>
+                            <h2 className="text-3xl font-black text-foreground tracking-tight">Today's Menu</h2>
                             {messMenu ? (
                                 <div className="space-y-6">
                                     <MessMenuCard menu={messMenu} />
-                                    <Link href="/dashboard/mess-menu" className="block text-center py-6 bg-white rounded-[2rem] border-2 border-dashed border-gray-200 text-dark-light text-[10px] font-black uppercase tracking-widest hover:border-primary hover:text-primary transition-all shadow-inner">
+                                    <Link href="/dashboard/mess-menu" className="block text-center py-6 bg-card rounded-[2rem] border border-border text-muted-foreground text-[10px] font-black uppercase tracking-widest hover:border-primary hover:text-primary transition-all shadow-inner">
                                         Full Culinary Schedule
                                     </Link>
                                 </div>
@@ -214,7 +221,7 @@ export default function DashboardPage() {
                         {/* Broadcast Center */}
                         <section className="space-y-8">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-3xl font-black text-dark tracking-tight">Bulletins</h2>
+                                <h2 className="text-3xl font-black text-foreground tracking-tight">Bulletins</h2>
                                 <Link href="/dashboard/notices" className="text-[10px] font-black uppercase tracking-widest text-secondary hover:tracking-[0.2em] transition-all">
                                     Archive →
                                 </Link>
@@ -227,9 +234,9 @@ export default function DashboardPage() {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="bg-white rounded-[3rem] p-12 text-center shadow-card border border-gray-50">
+                                <div className="bg-card rounded-[3rem] p-12 text-center shadow-card border border-border">
                                     <div className="text-4xl mb-4">📢</div>
-                                    <p className="text-dark-light font-black uppercase tracking-widest text-xs">No Official Bulletins</p>
+                                    <p className="text-muted-foreground font-black uppercase tracking-widest text-xs">No Official Bulletins</p>
                                 </div>
                             )}
                         </section>

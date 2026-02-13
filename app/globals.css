@@ -95,3 +95,27 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+@layer utilities {
+  .dark .text-dark {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .dark .text-dark-light {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .dark .bg-light {
+    background-color: hsl(var(--muted)) !important;
+  }
+
+  .dark .bg-white {
+    background-color: hsl(var(--card)) !important;
+  }
+
+  .dark .border-gray-50,
+  .dark .border-gray-100,
+  .dark .border-gray-200 {
+    border-color: hsl(var(--border)) !important;
+  }
+}

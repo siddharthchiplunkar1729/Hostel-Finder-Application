@@ -10,7 +10,7 @@ interface NoticeCardProps {
         content: string;
         type: string;
         priority: string;
-        from: {
+        from?: {
             role: string;
             name: string;
         };
@@ -44,6 +44,8 @@ const TYPE_CONFIG: { [key: string]: { bg: string, icon: any, border: string } } 
 export default function NoticeCard({ notice }: NoticeCardProps) {
     const [acknowledged, setAcknowledged] = useState(notice.isAcknowledged || false);
     const [saved, setSaved] = useState(false);
+    const fromRole = notice.from?.role || 'Administrative Office';
+    const fromName = notice.from?.name || 'Hostel Hub System';
 
     const config = TYPE_CONFIG[notice.type] || TYPE_CONFIG['General'];
     const Icon = config.icon;
@@ -85,7 +87,7 @@ export default function NoticeCard({ notice }: NoticeCardProps) {
                             )}
                         </div>
                         <p className="text-white/60 font-black uppercase tracking-[0.2em] text-[10px]">
-                            Broadcast from {notice.from.role} • {notice.from.name}
+                            Broadcast from {fromRole} • {fromName}
                         </p>
                     </div>
                 </div>

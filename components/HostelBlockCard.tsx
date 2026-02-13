@@ -2,6 +2,7 @@
 
 import { Building2, Users, Wifi, Dumbbell, BookOpen, Utensils, Video, MapPin, Star } from 'lucide-react';
 import Link from 'next/link';
+import { DEFAULT_HOSTEL_IMAGE, getPrimaryHostelImage } from '@/lib/hostelImages';
 
 interface HostelBlockCardProps {
     block: {
@@ -17,7 +18,7 @@ interface HostelBlockCardProps {
             photo?: string;
         };
         facilities: string[];
-        images: string[];
+        images: string[] | string | null | undefined;
         virtualTourUrl?: string;
         rating: number;
     };
@@ -32,22 +33,23 @@ const facilityIcons: { [key: string]: any } = {
 
 export default function HostelBlockCard({ block }: HostelBlockCardProps) {
     const occupancyPercentage = ((block.totalRooms - block.availableRooms) / block.totalRooms) * 100;
+    const primaryImage = getPrimaryHostelImage(block.images);
 
     return (
         <div className="group bg-white rounded-[2.5rem] overflow-hidden shadow-card hover:shadow-premium transition-all duration-500 hover:-translate-y-2 border border-transparent hover:border-primary/5">
             {/* Image Section */}
             <div className="relative h-64 overflow-hidden">
-                {block.images && block.images.length > 0 ? (
-                    <img
-                        src={block.images[0]}
-                        alt={block.blockName}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    />
-                ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
-                        <Building2 size={64} className="text-primary/20" />
-                    </div>
-                )}
+                <img
+                    src={primaryImage}
+                    alt={block.blockName}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    onError={(event) => {
+                        const img = event.currentTarget;
+                        if (img.src !== DEFAULT_HOSTEL_IMAGE) {
+                            img.src = DEFAULT_HOSTEL_IMAGE;
+                        }
+                    }}
+                />
 
                 {/* Overlays */}
                 <div className="absolute inset-0 bg-gradient-to-t from-dark/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

@@ -8,6 +8,8 @@ import {
     Calendar, CheckCircle, XCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { getAuthHeaders, getAuthToken, getStoredUser } from '@/lib/clientAuth';
 
 export default function WardenPortal() {
     const [applications, setApplications] = useState<any[]>([]);
@@ -20,10 +22,24 @@ export default function WardenPortal() {
         enrolled: 0,
         available: 0
     });
+    const router = useRouter();
 
     useEffect(() => {
+        const user = getStoredUser();
+        const token = getAuthToken();
+
+        if (!user || !token) {
+            router.push('/auth/login');
+            return;
+        }
+
+        if (user.role !== 'Warden' && user.role !== 'Admin') {
+            router.push('/');
+            return;
+        }
+
         fetchDashboard();
-    }, [selectedBlockId]);
+    }, [selectedBlockId, router]);
 
     const fetchDashboard = async () => {
         setLoading(true);
@@ -32,7 +48,7 @@ export default function WardenPortal() {
                 ? `/api/warden/dashboard?blockId=${selectedBlockId}`
                 : '/api/warden/dashboard';
 
-            const res = await fetch(url);
+            const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
                 setApplications(data.applications || []);
@@ -67,7 +83,7 @@ export default function WardenPortal() {
         try {
             const res = await fetch(`/api/applications/${id}/review`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({
                     status,
                     notes: status === 'Accepted' ? 'Welcome to the hostel!' : 'Room unavailability'

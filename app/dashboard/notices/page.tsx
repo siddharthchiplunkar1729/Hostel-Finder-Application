@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import NoticeCard from '@/components/NoticeCard';
 import { Bell, Search, Filter, ChevronLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { getAuthHeaders, getStoredUser } from '@/lib/clientAuth';
 
 export default function NoticesPage() {
     const [notices, setNotices] = useState<any[]>([]);
@@ -15,9 +16,8 @@ export default function NoticesPage() {
     const router = useRouter();
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            const userData = JSON.parse(storedUser);
+        const userData = getStoredUser();
+        if (userData) {
             if (userData.role === 'Student' && !userData.canAccessDashboard) {
                 router.push('/search');
                 return;
@@ -32,7 +32,7 @@ export default function NoticesPage() {
     const fetchNotices = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/notices');
+            const res = await fetch('/api/notices', { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
                 setNotices(data);

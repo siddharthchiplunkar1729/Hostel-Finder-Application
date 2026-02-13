@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Navigation, Star, Search, ArrowRight, Loader2, Info } from 'lucide-react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -41,19 +40,12 @@ const center: [number, number] = [28.6139, 77.2090];
 
 // Component to handle map center changes or other side effects
 function MapController() {
-    if (!useMap) return null;
+    const map = useMap();
 
-    try {
-        const map = useMap();
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        useEffect(() => {
-            if (map) {
-                map.flyTo(center, 13, { duration: 2 });
-            }
-        }, [map]);
-    } catch (e) {
-        // Handle case where useMap is called outside MapContainer
-    }
+    useEffect(() => {
+        map.flyTo(center, 13, { duration: 2 });
+    }, [map]);
+
     return null;
 }
 

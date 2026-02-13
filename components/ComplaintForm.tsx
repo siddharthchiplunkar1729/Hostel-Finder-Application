@@ -2,6 +2,7 @@
 
 import { XCircle, Camera, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { getAuthHeaders } from '@/lib/clientAuth';
 
 interface ComplaintFormProps {
     onClose: () => void;
@@ -56,7 +57,7 @@ export default function ComplaintForm({ onClose, studentId }: ComplaintFormProps
 
             const res = await fetch('/api/complaints', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify(complaintData),
             });
 

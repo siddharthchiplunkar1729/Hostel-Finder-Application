@@ -7,6 +7,8 @@ import {
     ArrowUpRight, Users, Star, Loader2, MoreVertical
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { getAuthHeaders, getAuthToken, getStoredUser } from '@/lib/clientAuth';
 
 export default function AdminPortal() {
     const [hostels, setHostels] = useState<any[]>([]);
@@ -18,15 +20,31 @@ export default function AdminPortal() {
         approved: 0,
         total: 0
     });
+    const router = useRouter();
 
     useEffect(() => {
+        const user = getStoredUser();
+        const token = getAuthToken();
+
+        if (!user || !token) {
+            router.push('/auth/login');
+            return;
+        }
+
+        if (user.role !== 'Admin') {
+            router.push('/');
+            return;
+        }
+
         fetchHostels();
-    }, [filter]);
+    }, [filter, router]);
 
     const fetchHostels = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/admin/hostels?status=${filter !== 'All' ? filter : ''}`);
+            const res = await fetch(`/api/admin/hostels?status=${filter !== 'All' ? filter : ''}`, {
+                headers: getAuthHeaders()
+            });
             if (res.ok) {
                 const data = await res.json();
                 setHostels(data);
@@ -49,7 +67,7 @@ export default function AdminPortal() {
         try {
             const res = await fetch(`/api/admin/hostels/${id}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({
                     status,
                     remarks: status === 'Approved' ? 'Verified by Admin' : 'Documents incomplete',
