@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, Loader2, ArrowRight, ShieldCheck, UserCircle, LayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
+import { setAuthSession } from '@/lib/clientAuth';
 
 function LoginContent() {
     const [email, setEmail] = useState('');
@@ -42,11 +43,10 @@ function LoginContent() {
                 ? data.student
                 : data.student?.id || null;
 
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify({
+            setAuthSession(data.token, {
                 ...data.user,
                 studentId,
-            }));
+            });
 
             // Role-based redirection
             const role = data.user.role;
@@ -65,6 +65,7 @@ function LoginContent() {
                     router.replace('/search');
                 }
             }
+            router.refresh();
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Login failed');
         } finally {
@@ -154,7 +155,7 @@ function LoginContent() {
 
                     <div className="mt-8 text-center">
                         <p className="text-dark-light font-bold text-sm">
-                            Don't have an account? <Link href="/auth/signup" className="text-primary hover:underline">Create Account</Link>
+                            Don&apos;t have an account? <Link href="/auth/signup" className="text-primary hover:underline">Create Account</Link>
                         </p>
                     </div>
                 </div>

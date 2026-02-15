@@ -2,8 +2,9 @@
 
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Mail, Lock, Loader2, ArrowRight, User, ShieldCheck, UserCircle, Briefcase, GraduationCap, Phone } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowRight, User, ShieldCheck, Briefcase, GraduationCap, Phone } from 'lucide-react';
 import Link from 'next/link';
+import { setAuthSession } from '@/lib/clientAuth';
 
 function SignupForm() {
     const searchParams = useSearchParams();
@@ -43,11 +44,10 @@ function SignupForm() {
                 ? data.student
                 : data.student?.id || null;
 
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify({
+            setAuthSession(data.token, {
                 ...data.user,
                 studentId
-            }));
+            });
 
             // Role-based redirection
             if (data.user.role === 'Admin') {
@@ -57,6 +57,7 @@ function SignupForm() {
             } else {
                 router.replace('/search');
             }
+            router.refresh();
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Signup failed');
         } finally {
@@ -200,7 +201,7 @@ export default function SignupPage() {
                         <span className="text-3xl font-black tracking-tighter text-dark">HOSTEL<span className="text-primary">HUB</span></span>
                     </Link>
                     <h1 className="text-4xl font-black text-dark mb-2">Create Account</h1>
-                    <p className="text-dark-light font-medium text-lg">Join the university's premier hostel network</p>
+                    <p className="text-dark-light font-medium text-lg">Join the university&apos;s premier hostel network</p>
                 </div>
 
                 <Suspense fallback={

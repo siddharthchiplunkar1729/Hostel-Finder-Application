@@ -6,6 +6,197 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
+const BED_TYPE_IMAGES = [
+    '/bed-types/single-study.svg',
+    '/bed-types/twin-share.svg',
+    '/bed-types/bunk-bed.svg',
+    '/bed-types/small-double.svg',
+];
+
+const BED_TYPE_LABELS = [
+    'Single Bed',
+    'Twin Share',
+    'Bunk Bed',
+    'Small Double',
+];
+
+// Mirrors data from lib/mockData.js and maps it to the relational seed format.
+const MOCK_HOSTELS = [
+    {
+        name: 'Zostel Mumbai',
+        location: 'Mumbai, Maharashtra',
+        description: 'Vibrant backpacker hostel in the heart of Mumbai. Close to the airport and major attractions.',
+        rating: 4.8,
+        amenities: ['Free WiFi', 'AC', 'Common Room', 'Cafe', 'Lockers'],
+        images: ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80'],
+        gender: 'Co-ed',
+        messAvailable: true,
+    },
+    {
+        name: 'Student Pods Andheri',
+        location: 'Mumbai, Maharashtra',
+        description: 'Affordable student accommodation near Mumbai University. Quiet study zones and high-speed internet.',
+        rating: 4.5,
+        amenities: ['Study Room', 'WiFi', 'Laundry', 'Mess', '24/7 Security'],
+        images: ['https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=800&q=80'],
+        gender: 'Boys',
+        messAvailable: true,
+    },
+    {
+        name: 'The Backpackers Loft',
+        location: 'Delhi, New Delhi',
+        description: 'A cozy loft for travelers in Paharganj. Meet people from all over the world.',
+        rating: 4.2,
+        amenities: ['Rooftop', 'WiFi', 'Kitchen', 'Tours'],
+        images: ['https://images.unsplash.com/photo-1520277739336-7bf67edfa768?auto=format&fit=crop&w=800&q=80'],
+        gender: 'Co-ed',
+        messAvailable: false,
+    },
+    {
+        name: "Campus Hive Girl's Hostel",
+        location: 'Pune, Maharashtra',
+        description: 'Modern co-living space for female students. Near Symbiosis. Safe and secure.',
+        rating: 4.9,
+        amenities: ['Gym', 'Gaming Zone', 'AC', 'Meals Included', 'Biometric Entry'],
+        images: ['https://images.unsplash.com/photo-1522771753037-6333616235df?auto=format&fit=crop&w=800&q=80'],
+        gender: 'Girls',
+        messAvailable: true,
+    },
+    {
+        name: 'Goa Beach Hostel',
+        location: 'Anjuna, Goa',
+        description: 'Party hostel right on the beach. Good vibes only.',
+        rating: 4.3,
+        amenities: ['Bar', 'Pool', 'Beach Access', 'WiFi'],
+        images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80'],
+        gender: 'Co-ed',
+        messAvailable: true,
+    },
+    {
+        name: "Scholar's Den",
+        location: 'Bangalore, Karnataka',
+        description: 'Dedicated housing for engineering students in Koramangala. 24/7 Library access.',
+        rating: 4.0,
+        amenities: ['Library', 'High-Speed WiFi', 'Mess', 'Shuttle Service'],
+        images: ['https://images.unsplash.com/photo-1596701062351-8c2c14d1fdd0?auto=format&fit=crop&w=800&q=80'],
+        gender: 'Boys',
+        messAvailable: true,
+    },
+    {
+        name: 'Pink City Backpackers',
+        location: 'Jaipur, Rajasthan',
+        description: 'Traditional haveli turned into a social hostel. Rooftop yoga and chai.',
+        rating: 4.7,
+        amenities: ['Yoga', 'Rooftop Cafe', 'WiFi', 'Cultural Tours'],
+        images: ['https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80'],
+        gender: 'Co-ed',
+        messAvailable: true,
+    },
+    {
+        name: 'SafeHaven Ladies PG',
+        location: 'Mumbai, Maharashtra',
+        description: 'Premium paying guest accommodation for working women and students in Bandra.',
+        rating: 4.6,
+        amenities: ['AC', 'Attached Washroom', 'Housekeeping', 'WiFi', 'Security'],
+        images: ['https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80'],
+        gender: 'Girls',
+        messAvailable: false,
+    },
+    {
+        name: 'Himalayan Basecamp',
+        location: 'Manali, Himachal Pradesh',
+        description: 'For digital nomads and mountain lovers. Work with a view.',
+        rating: 4.9,
+        amenities: ['Heater', 'Co-working Space', 'Cafe', 'Bonfire'],
+        images: ['https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80'],
+        gender: 'Co-ed',
+        messAvailable: true,
+    },
+    {
+        name: 'UniLiving Co-ed',
+        location: 'Delhi, New Delhi',
+        description: 'Modern cosmopolitan student living near North Campus.',
+        rating: 4.1,
+        amenities: ['Gym', 'Common Lounge', 'Mess', 'Laundry'],
+        images: ['https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=800&q=80'],
+        gender: 'Co-ed',
+        messAvailable: true,
+    },
+    {
+        name: 'TechHub Stay',
+        location: 'Hyderabad, Telangana',
+        description: 'Budget stay for interns and students in Hitech City.',
+        rating: 3.8,
+        amenities: ['WiFi', 'Power Backup', 'Mess', 'Parking'],
+        images: ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80'],
+        gender: 'Boys',
+        messAvailable: true,
+    },
+    {
+        name: 'Kerala Backwaters Hostel',
+        location: 'Alleppey, Kerala',
+        description: 'Relax by the water. Canoeing and local food experiences.',
+        rating: 4.5,
+        amenities: ['Canoeing', 'Kitchen', 'WiFi', 'Hammocks'],
+        images: ['https://images.unsplash.com/photo-1596701062351-8c2c14d1fdd0?auto=format&fit=crop&w=800&q=80'],
+        gender: 'Co-ed',
+        messAvailable: true,
+    },
+];
+
+function normalizeAmenity(amenity) {
+    const value = String(amenity || '').trim();
+    const lower = value.toLowerCase();
+
+    if (lower.includes('wifi')) return 'WiFi';
+    if (lower.includes('gym')) return 'Gym';
+    if (lower.includes('library')) return 'Library';
+    if (lower.includes('mess') || lower.includes('meal')) return 'Mess';
+    if (lower.includes('security')) return 'Security';
+    if (lower.includes('laundry')) return 'Laundry';
+    if (lower.includes('ac')) return 'AC';
+    if (lower.includes('cafe')) return 'Cafe';
+    if (lower.includes('kitchen')) return 'Kitchen';
+    if (lower.includes('study')) return 'Study Room';
+
+    return value || 'General Facility';
+}
+
+function mapMockHostelToBlock(hostel, idx, wardenA, wardenB) {
+    const totalRooms = 70 + (idx % 6) * 15; // 70, 85, 100...
+    const occupancyRatio = 0.6 + (idx % 3) * 0.1; // 60-80%
+    const occupiedRooms = Math.min(totalRooms - 1, Math.floor(totalRooms * occupancyRatio));
+    const availableRooms = Math.max(1, totalRooms - occupiedRooms);
+    const bedTypeLabel = BED_TYPE_LABELS[idx % BED_TYPE_LABELS.length];
+    const bedTypeImage = BED_TYPE_IMAGES[idx % BED_TYPE_IMAGES.length];
+    const facilities = Array.from(
+        new Set([
+            ...(hostel.amenities || []).map(normalizeAmenity),
+            ...(hostel.messAvailable ? ['Mess'] : []),
+            bedTypeLabel,
+        ])
+    );
+
+    const normalizedName = /hall|hostel/i.test(hostel.name)
+        ? hostel.name
+        : `${hostel.name} Hall`;
+    const normalizedDescription = `${hostel.description} Structured for university students with managed resident operations.`;
+
+    return {
+        name: normalizedName,
+        type: ['Boys', 'Girls', 'Co-ed'].includes(hostel.gender) ? hostel.gender : 'Co-ed',
+        desc: normalizedDescription,
+        rooms: totalRooms,
+        avail: availableRooms,
+        loc: hostel.location,
+        rating: hostel.rating || 4.0,
+        warden: idx % 2 === 0 ? wardenA : wardenB,
+        img: [bedTypeImage, ...((Array.isArray(hostel.images) && hostel.images.length > 0) ? hostel.images : [])],
+        fac: facilities,
+        status: 'Approved',
+    };
+}
+
 async function seed() {
     const client = await pool.connect();
     try {
@@ -83,7 +274,10 @@ async function seed() {
                 img: ['https://images.unsplash.com/photo-1582719478250-c89cae4dc85b'],
                 fac: ['WiFi', 'Mess', 'Common Room'],
                 status: 'Rejected'
-            }
+            },
+            ...MOCK_HOSTELS.map((h, idx) =>
+                mapMockHostelToBlock(h, idx, warden1Res.rows[0].id, warden2Res.rows[0].id)
+            ),
         ];
 
         const blockIds = [];

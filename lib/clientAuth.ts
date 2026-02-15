@@ -7,6 +7,8 @@ export interface StoredUser {
     enrolledHostelId?: string;
 }
 
+export const AUTH_CHANGED_EVENT = 'hostelhub:auth-changed';
+
 export function getStoredUser(): StoredUser | null {
     if (typeof window === 'undefined') return null;
 
@@ -23,6 +25,22 @@ export function getStoredUser(): StoredUser | null {
 export function getAuthToken(): string | null {
     if (typeof window === 'undefined') return null;
     return localStorage.getItem('token');
+}
+
+export function setAuthSession(token: string, user: StoredUser) {
+    if (typeof window === 'undefined') return;
+
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    window.dispatchEvent(new CustomEvent(AUTH_CHANGED_EVENT, { detail: { user } }));
+}
+
+export function clearAuthSession() {
+    if (typeof window === 'undefined') return;
+
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.dispatchEvent(new CustomEvent(AUTH_CHANGED_EVENT, { detail: { user: null } }));
 }
 
 export function getAuthHeaders(headers: Record<string, string> = {}) {

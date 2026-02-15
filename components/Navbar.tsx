@@ -5,11 +5,12 @@ import Link from 'next/link';
 import { Menu, X, GraduationCap, User, LogOut, LayoutDashboard, ShieldCheck, Home, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ModeToggle } from './ThemeToggle';
+import { AUTH_CHANGED_EVENT, clearAuthSession, getStoredUser, type StoredUser } from '@/lib/clientAuth';
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<StoredUser | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -17,21 +18,34 @@ export default function Navbar() {
             setScrolled(window.scrollY > 20);
         };
 
-        // Initial user check
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
+        const syncUserFromStorage = () => {
+            setUser(getStoredUser());
+        };
+
+        const handleStorage = (event: StorageEvent) => {
+            if (!event.key || event.key === 'user' || event.key === 'token') {
+                syncUserFromStorage();
+            }
+        };
+
+        syncUserFromStorage();
 
         window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        window.addEventListener('storage', handleStorage);
+        window.addEventListener(AUTH_CHANGED_EVENT, syncUserFromStorage as EventListener);
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('storage', handleStorage);
+            window.removeEventListener(AUTH_CHANGED_EVENT, syncUserFromStorage as EventListener);
+        };
     }, []);
 
     const handleLogout = () => {
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
+        clearAuthSession();
         setUser(null);
         router.push('/');
+        router.refresh();
     };
 
     return (
