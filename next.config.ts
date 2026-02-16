@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  turbopack: {
+    root: typeof __dirname === 'string' ? __dirname : process.cwd(),
+  },
   async headers() {
     return [
       {
