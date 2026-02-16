@@ -9,11 +9,19 @@ export async function POST(request: NextRequest) {
         client = await pool.connect();
         const body = await request.json();
         const { email, password, name, phone, role = 'Student', studentData } = body;
+        const normalizedPhone = String(phone ?? '').replace(/\D/g, '');
 
         // Validation
         if (!email || !password || !name || !phone) {
             return NextResponse.json(
                 { error: 'Missing required fields' },
+                { status: 400 }
+            );
+        }
+
+        if (!/^\d{10}$/.test(normalizedPhone)) {
+            return NextResponse.json(
+                { error: 'Phone number must be exactly 10 digits' },
                 { status: 400 }
             );
         }
@@ -66,7 +74,7 @@ export async function POST(request: NextRequest) {
             `INSERT INTO users (email, password, name, phone, role, can_access_dashboard, is_active) 
              VALUES ($1, $2, $3, $4, $5, $6, $7) 
              RETURNING *`,
-            [email.toLowerCase(), hashedPassword, name, phone, role, false, true] // Default can_access_dashboard to false, is_active to true
+            [email.toLowerCase(), hashedPassword, name, normalizedPhone, role, false, true] // Default can_access_dashboard to false, is_active to true
         );
         const user = insertUserRes.rows[0];
 
@@ -147,12 +155,13 @@ export async function POST(request: NextRequest) {
             refreshToken
         }, { status: 201 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (client) await client.query('ROLLBACK');
+        const message = error instanceof Error ? error.message : 'Unknown error';
         console.error('Signup error:', error);
 
         return NextResponse.json(
-            { error: 'Registration failed', details: error.message },
+            { error: 'Registration failed', details: message },
             { status: 500 }
         );
     } finally {

@@ -134,7 +134,7 @@ function LoginContent() {
                                 <input type="checkbox" className="rounded-md border-gray-300 text-primary focus:ring-primary w-4 h-4" />
                                 Remember me
                             </label>
-                            <a href="#" className="font-bold text-primary hover:underline">Forgot Password?</a>
+                            <Link href="/auth/forgot-password" className="font-bold text-primary hover:underline">Forgot Password?</Link>
                         </div>
 
                         <button

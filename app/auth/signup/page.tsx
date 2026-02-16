@@ -6,6 +6,8 @@ import { Mail, Lock, Loader2, ArrowRight, User, ShieldCheck, Briefcase, Graduati
 import Link from 'next/link';
 import { setAuthSession } from '@/lib/clientAuth';
 
+const sanitizePhoneInput = (value: string): string => value.replace(/\D/g, '').slice(0, 10);
+
 function SignupForm() {
     const searchParams = useSearchParams();
     const initialRole = searchParams.get('role') || 'Student';
@@ -23,14 +25,21 @@ function SignupForm() {
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setError('');
+        const normalizedPhone = sanitizePhoneInput(formData.phone);
+
+        if (!/^\d{10}$/.test(normalizedPhone)) {
+            setError('Phone number must be exactly 10 digits');
+            return;
+        }
+
+        setLoading(true);
 
         try {
             const res = await fetch('/api/auth/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({ ...formData, phone: normalizedPhone }),
             });
 
             const data = await res.json();
@@ -119,9 +128,12 @@ function SignupForm() {
                                 type="tel"
                                 required
                                 className="w-full pl-12 pr-4 py-4 bg-light/50 border-none rounded-2xl focus:ring-2 focus:ring-primary transition-all font-medium text-dark"
-                                placeholder="+91 98765 43210"
+                                placeholder="9876543210"
+                                inputMode="numeric"
+                                pattern="\d{10}"
+                                maxLength={10}
                                 value={formData.phone}
-                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, phone: sanitizePhoneInput(e.target.value) })}
                             />
                         </div>
                     </div>
