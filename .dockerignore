@@ -1,8 +1,6 @@
 node_modules
 .next
 npm-debug.log
-Dockerfile*
-docker-compose*.yml
 .git
 .gitignore
 .vscode
@@ -13,3 +11,9 @@ docker-compose*.yml
 .env.production
 coverage
 build.log
+apps/**/node_modules
+apps/**/dist
+apps/**/target
+.m2
+.npm-cache
+.tools

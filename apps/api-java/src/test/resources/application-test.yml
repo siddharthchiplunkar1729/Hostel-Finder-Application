@@ -1,0 +1,35 @@
+debug: false
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:hostelhub;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  main:
+    log-startup-info: false
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  flyway:
+    enabled: false
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-h2.sql
+      data-locations: classpath:data-h2.sql
+
+app:
+  security:
+    jwt-secret: test-secret-that-is-long-enough-for-hmac-signing-2026
+    access-token-ttl: 1h
+    refresh-token-ttl: 1d
+    reset-token-ttl: 15m
+    cors-allowed-origins: http://localhost:4200
+
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    org.hibernate.SQL: WARN

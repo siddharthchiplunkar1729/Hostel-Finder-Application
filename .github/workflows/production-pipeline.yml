@@ -1,4 +1,4 @@
-name: HostelHub CI/CD Pipeline
+name: Java Angular CI/CD
 
 on:
   push:
@@ -7,17 +7,24 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+concurrency:
+  group: hostelhub-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-and-test:
+  backend-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     env:
-      DATABASE_URL: postgresql://postgres:password@localhost:5432/hostelhub_test?sslmode=disable
-      JWT_SECRET: ci_test_secret
+      DATABASE_URL: jdbc:postgresql://localhost:5432/hostelhub_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      JWT_SECRET: ci_test_secret_ci_test_secret_ci
+      CORS_ALLOWED_ORIGINS: http://localhost:4200
 
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:16
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
@@ -25,7 +32,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres -d hostelhub_test"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -33,60 +40,56 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Build Spring Boot API
+        run: mvn -f apps/api-java/pom.xml -B package
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '24'
 
-      - name: Install Dependencies
-        run: npm ci
+      - name: Install Angular dependencies
+        run: npm --prefix apps/web-angular ci
 
-      - name: Install PostgreSQL Client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
+      - name: Build Angular app
+        run: npm --prefix apps/web-angular run build
 
-      - name: Seed Test Database
-        run: |
-          until pg_isready -h localhost -p 5432 -U postgres; do
-            echo "Waiting for Postgres..."
-            sleep 2
-          done
-          psql -h localhost -U postgres -d hostelhub_test -f scripts/init-db.sql
-        env:
-          PGPASSWORD: password
+  docker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs:
+      - backend-build
+      - frontend-build
 
-      - name: Run Production Build
-        run: npm run build
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Build Docker Image
-        run: docker build -t hostelhub:ci .
+      - name: Build API image
+        run: docker build -f docker/api-java.Dockerfile -t hostelhub-api:ci .
 
-      - name: Smoke Test APIs
-        run: |
-          npm start &
-          APP_PID=$!
-          trap "kill $APP_PID" EXIT
-          for i in {1..30}; do
-            if curl -fsS http://localhost:3000 >/dev/null; then
-              READY=1
-              break
-            fi
-            sleep 2
-          done
-          if [ -z "${READY:-}" ]; then
-            echo "App failed to become ready in time"
-            exit 1
-          fi
-          node scripts/api-smoke-test.js
-        env:
-          API_URL: http://localhost:3000
+      - name: Build Web image
+        run: docker build -f docker/web-angular.Dockerfile -t hostelhub-web:ci .
 
   deploy-ready:
-    needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    needs:
+      - docker-build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
     steps:
-      - name: Notification
-        run: echo "Code is verified and ready for production Docker deployment."
+      - name: Deployment summary
+        run: echo "Build, frontend bundle, and Docker images are ready. Deploy with docker-compose.java-angular.yml or extend this job with your target environment secrets."
